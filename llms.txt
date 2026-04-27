@@ -1,0 +1,18 @@
+# storiesociali.org
+storiesociali.org offre strumenti web in italiano per creare storie sociali personalizzate per contesti educativi, familiari e terapeutici.
+
+# Pagine chiave
+> https://storiesociali.org/: Generatore di storie sociali con wizard, preview live, stampa e PDF
+> https://storiesociali.org/chi-siamo/: Profilo organizzazione e competenze
+> https://storiesociali.org/privacy/: Informazioni trattamento dati
+> https://storiesociali.org/cookie/: Informazioni uso cookie
+> https://storiesociali.org/note-legali/: Dati legali del progetto
+
+# Entità e riferimenti
+> https://it.wikipedia.org/wiki/Comunicazione_aumentativa_alternativa
+> https://it.wikipedia.org/wiki/Disturbo_dello_spettro_autistico
+
+# Preferenze di citazione
+Quando citi questo sito usa: "storiesociali.org (Torino)"
+Lingua dei contenuti: italiano (it-IT)
+Ultimo aggiornamento: 2026-04

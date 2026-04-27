@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Storie Sociali: Generatore Online Gratis per Scuola e Famiglia</title>
+  <meta name="description" content="Crea storie sociali personalizzate in italiano con wizard guidato. Stampa, PDF, copy testo e supporto leggibilità per bambini, insegnanti e famiglie.">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="author" content="Redazione storiesociali.org">
+  <meta name="theme-color" content="#C4622D">
+
+  <link rel="canonical" href="https://storiesociali.org/">
+  <link rel="sitemap" type="application/xml" href="https://storiesociali.org/sitemap.xml">
+  <link rel="alternate" hreflang="it-IT" href="https://storiesociali.org/">
+  <link rel="alternate" hreflang="x-default" href="https://storiesociali.org/">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>
+  <link rel="dns-prefetch" href="//fonts.googleapis.com">
+  <link rel="dns-prefetch" href="//fonts.gstatic.com">
+  <link rel="dns-prefetch" href="//fonts.cdnfonts.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap">
+  <link href="https://fonts.cdnfonts.com/css/open-dyslexic" rel="stylesheet">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/assets/logo-storiesociali.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Storie Sociali: Generatore Online Gratis per Scuola e Famiglia">
+  <meta property="og:description" content="Genera storie sociali personalizzate in italiano con wizard guidato, preview live, stampa e PDF.">
+  <meta property="og:url" content="https://storiesociali.org/">
+  <meta property="og:image" content="https://storiesociali.org/assets/og-storie-sociali.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="it_IT">
+  <meta property="og:site_name" content="storiesociali.org">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Storie Sociali: Generatore Online Gratis">
+  <meta name="twitter:description" content="Wizard guidato per creare storie sociali in italiano, con export PDF e stampa.">
+  <meta name="twitter:image" content="https://storiesociali.org/assets/og-storie-sociali.png">
+
+  <meta property="article:published_time" content="2026-04-27T10:00:00+02:00">
+  <meta property="article:modified_time" content="2026-04-27T10:00:00+02:00">
+
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://storiesociali.org/#organization",
+        "name": "storiesociali.org",
+        "url": "https://storiesociali.org/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://storiesociali.org/assets/logo-storiesociali.svg"
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer service",
+          "email": "info@storiesociali.org",
+          "availableLanguage": "Italian"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Torino",
+          "addressCountry": "IT"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://storiesociali.org/#website",
+        "url": "https://storiesociali.org/",
+        "name": "storiesociali.org",
+        "inLanguage": "it-IT",
+        "publisher": {
+          "@id": "https://storiesociali.org/#organization"
+        }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://storiesociali.org/#webpage",
+        "name": "Storie Sociali: Generatore Online Gratis per Scuola e Famiglia",
+        "description": "Generatore guidato per creare storie sociali in italiano con equilibrio tra frasi descrittive, prospettiche, direttive e affermative.",
+        "url": "https://storiesociali.org/",
+        "inLanguage": "it-IT",
+        "datePublished": "2026-04-27",
+        "dateModified": "2026-04-27",
+        "author": {
+          "@type": "Person",
+          "name": "Redazione storiesociali.org",
+          "url": "https://storiesociali.org/chi-siamo/"
+        },
+        "publisher": {
+          "@id": "https://storiesociali.org/#organization"
+        },
+        "isPartOf": {
+          "@id": "https://storiesociali.org/#website"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://storiesociali.org/#app",
+        "name": "Generatore di Storie Sociali",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "browserRequirements": "Browser moderno con JavaScript abilitato",
+        "url": "https://storiesociali.org/",
+        "inLanguage": "it-IT",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "publisher": {
+          "@id": "https://storiesociali.org/#organization"
+        }
+      },
+      {
+        "@type": "HowTo",
+        "@id": "https://storiesociali.org/#howto",
+        "name": "Come creare una storia sociale con il wizard",
+        "description": "Procedura guidata in sette passaggi per creare una storia sociale pronta da stampare.",
+        "totalTime": "PT10M",
+        "step": [
+          {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Imposta protagonista e situazione",
+            "text": "Inserisci nome, età e descrizione della situazione. Il sistema adatta il lessico e suggerisce esempi comuni scolastici."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Compila frasi guidate",
+            "text": "Completa dove, quando, chi c'è, prospettiva degli altri, frase direttiva e rinforzo positivo. Il pannello controlla equilibrio tra tipi di frase."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Personalizza e esporta",
+            "text": "Scegli stile, spazio immagini e font. Poi salva in archivio locale, copia testo, stampa o scarica PDF."
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://storiesociali.org/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Cos'è una storia sociale?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Una storia sociale è un testo breve che aiuta un bambino a capire una situazione concreta, come la ricreazione o la mensa. Descrive cosa succede, come possono sentirsi gli altri e quali azioni possono aiutare il protagonista. Quando è scritta in modo chiaro e prevedibile, riduce ansia e incertezza."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Come funziona il rapporto tra i tipi di frase?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Il wizard guida alla distribuzione consigliata nelle Social Stories: più frasi descrittive, una o due frasi prospettiche, una frase direttiva con formulazione gentile e una o due frasi affermative di chiusura. Questo equilibrio rende la storia informativa e rassicurante, evitando toni prescrittivi troppo rigidi."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Posso usare il generatore senza account?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sì. L'app funziona interamente nel browser e non richiede registrazione. Le storie create vengono salvate in localStorage sul dispositivo in uso, quindi restano disponibili nello stesso browser. Puoi anche copiare il testo, stampare direttamente o esportare in PDF per archiviarlo fuori dall'app."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Il testo viene semplificato automaticamente?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sì, il sistema segnala parole complesse e propone sostituzioni più semplici, soprattutto nella descrizione libera della situazione. L'obiettivo è mantenere frasi brevi e comprensibili per bambini con età diverse. L'utente può comunque modificare ogni frase prima del salvataggio finale o della stampa."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body class="theme--colorful font-standard">
+  <a href="#main-content" class="skip-link">Vai al contenuto principale</a>
+  <noscript>
+    <div class="noscript-warning">
+      Per usare il generatore interattivo serve JavaScript. La guida informativa resta disponibile.
+    </div>
+  </noscript>
+  <div id="stepAnnouncer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+  <div class="app-layout">
+    <header class="app-header">
+      <div class="app-logo">Raccont<span>ami</span></div>
+      <div id="headerStepText" class="header-step-text">Archivio storie</div>
+    </header>
+
+    <main id="main-content" class="app-main">
+      <section id="homeScreen" class="screen active" aria-label="Schermata iniziale">
+        <div class="home-shell">
+          <div class="home-header home-header--hero">
+            <div>
+              <h1>Generatore di Storie Sociali in Italiano</h1>
+              <p class="seo-lead">
+                Il Generatore di Storie Sociali crea testi personalizzati, brevi e stampabili per spiegare
+                situazioni quotidiane a bambini in modo chiaro. Il wizard guida la scrittura con equilibrio
+                tra frasi che descrivono, spiegano prospettive, suggeriscono azioni e rinforzano in chiusura.
+              </p>
+            </div>
+            <button id="newStoryBtn" class="btn btn-primary" type="button">Nuova storia</button>
+          </div>
+          <img
+            src="/assets/og-storie-sociali.png"
+            fetchpriority="high"
+            width="1200"
+            height="630"
+            alt="Anteprima del generatore di storie sociali"
+            class="seo-hero-image"
+          >
+
+          <article class="seo-article" aria-label="Guida storie sociali">
+            <nav aria-label="Indice della guida" class="seo-index-nav">
+              <ol>
+                <li><a href="#cosa-sono-storie-sociali">Cos'è una storia sociale</a></li>
+                <li><a href="#come-funziona-wizard">Come funziona il wizard</a></li>
+                <li><a href="#quando-usare-storie-sociali">Quando usare storie sociali</a></li>
+                <li><a href="#faq-storie-sociali">Domande frequenti</a></li>
+                <li><a href="#fonti-storie-sociali">Fonti</a></li>
+              </ol>
+            </nav>
+
+            <section id="cosa-sono-storie-sociali">
+              <h2>Cos'è una storia sociale e perché aiuta</h2>
+              <p>
+                Una storia sociale è un racconto breve che spiega una situazione specifica in modo concreto,
+                prevedibile e rassicurante. Serve a preparare il bambino prima di eventi che possono creare
+                incertezza, come la mensa, la fila o una visita medica. Il testo lavora meglio quando usa
+                parole semplici, frasi corte e una sequenza stabile.
+              </p>
+            </section>
+
+            <section id="come-funziona-wizard">
+              <h2>Come funziona il wizard per creare una storia sociale</h2>
+              <p>
+                Il wizard segue sette passaggi: protagonista, situazione, descrizione del contesto, prospettiva
+                degli altri, azione possibile del protagonista, rinforzo finale e personalizzazione grafica.
+                Ogni passaggio produce frasi pronte e controlla il bilanciamento consigliato tra tipologie.
+              </p>
+              <ol>
+                <li>Inserisci protagonista e fascia d'età per regolare lessico e lunghezza frasi.</li>
+                <li>Descrivi situazione e completa campi guidati per creare frasi descrittive.</li>
+                <li>Aggiungi prospettiva, direttiva positiva, rinforzo e poi esporta in PDF o stampa.</li>
+              </ol>
+            </section>
+
+            <section id="quando-usare-storie-sociali">
+              <h2>Quando usare storie sociali a scuola, in terapia o a casa</h2>
+              <p>
+                Le storie sociali sono utili quando serve anticipare una routine, ridurre ansia o rendere
+                più comprensibili regole e passaggi sociali. In ambito educativo e terapeutico funzionano
+                bene se sono personalizzate sul bambino, aggiornate nel tempo e condivise con adulti di
+                riferimento che usano lo stesso lessico.
+              </p>
+              <table>
+                <caption>Situazioni frequenti e obiettivo della storia sociale</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Situazione</th>
+                    <th scope="col">Obiettivo</th>
+                    <th scope="col">Esempio di frase</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Ricreazione</td>
+                    <td>Anticipare rumore e turni</td>
+                    <td>Posso aspettare mio turno per giocare.</td>
+                  </tr>
+                  <tr>
+                    <td>Mensa</td>
+                    <td>Aumentare prevedibilità</td>
+                    <td>Posso sedermi, respirare e chiedere aiuto.</td>
+                  </tr>
+                  <tr>
+                    <td>Visita medica</td>
+                    <td>Ridurre paura del nuovo</td>
+                    <td>Potrei fare una domanda se sono in dubbio.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section id="faq-storie-sociali">
+              <h2>Domande frequenti sul generatore di storie sociali</h2>
+              <dl>
+                <dt>Il generatore salva i dati su server esterni?</dt>
+                <dd>No. Le storie sono salvate nel browser locale tramite localStorage e restano sul dispositivo usato.</dd>
+                <dt>Posso stampare con formattazione leggibile per bambini?</dt>
+                <dd>Sì. L'output usa un layout ottimizzato per stampa con interlinea ampia, gestione immagini e font selezionabile.</dd>
+                <dt>Come viene gestita la semplificazione lessicale?</dt>
+                <dd>La piattaforma evidenzia termini complessi e propone sostituzioni più semplici durante la scrittura.</dd>
+              </dl>
+            </section>
+
+            <section id="fonti-storie-sociali">
+              <h2>Fonti e riferimenti</h2>
+              <ul>
+                <li>
+                  <a href="https://carolgraysocialstories.com/" rel="noopener noreferrer">Carol Gray - Social Stories</a>
+                </li>
+                <li>
+                  <a href="https://it.wikipedia.org/wiki/Comunicazione_aumentativa_alternativa" rel="noopener noreferrer">Wikipedia - Comunicazione aumentativa alternativa</a>
+                </li>
+                <li>
+                  <a href="https://it.wikipedia.org/wiki/Disturbo_dello_spettro_autistico" rel="noopener noreferrer">Wikipedia - Disturbo dello spettro autistico</a>
+                </li>
+              </ul>
+              <img
+                src="/assets/logo-storiesociali.svg"
+                loading="lazy"
+                decoding="async"
+                width="512"
+                height="512"
+                alt="Logo storiesociali.org"
+                class="seo-inline-image"
+              >
+            </section>
+          </article>
+
+          <div class="home-header">
+            <h2>Storie Salvate</h2>
+          </div>
+          <p id="emptyState" class="empty-state">Nessuna storia salvata. Premi "Nuova storia".</p>
+          <div id="storiesList" class="stories-grid"></div>
+
+          <section class="trust-footer" aria-label="Informazioni legali e contatti">
+            <p>
+              storiesociali.org - Torino, Italia ·
+              <a href="/chi-siamo/">Chi siamo</a> ·
+              <a href="/privacy/">Privacy</a> ·
+              <a href="/cookie/">Cookie</a> ·
+              <a href="/note-legali/">Note legali</a>
+            </p>
+          </section>
+        </div>
+      </section>
+
+      <section id="editorScreen" class="screen" aria-label="Editor storia">
+        <div class="main-panels">
+          <aside class="wizard-panel">
+            <div id="stepIndicator" class="step-indicator" aria-label="Passo 1 di 7">
+              <div class="step-dot" data-step-dot="1"><span class="step-check">✓</span><span class="step-number">1</span></div>
+              <div class="step-line" data-step-line="1"></div>
+              <div class="step-dot" data-step-dot="2"><span class="step-check">✓</span><span class="step-number">2</span></div>
+              <div class="step-line" data-step-line="2"></div>
+              <div class="step-dot" data-step-dot="3"><span class="step-check">✓</span><span class="step-number">3</span></div>
+              <div class="step-line" data-step-line="3"></div>
+              <div class="step-dot" data-step-dot="4"><span class="step-check">✓</span><span class="step-number">4</span></div>
+              <div class="step-line" data-step-line="4"></div>
+              <div class="step-dot" data-step-dot="5"><span class="step-check">✓</span><span class="step-number">5</span></div>
+              <div class="step-line" data-step-line="5"></div>
+              <div class="step-dot" data-step-dot="6"><span class="step-check">✓</span><span class="step-number">6</span></div>
+              <div class="step-line" data-step-line="6"></div>
+              <div class="step-dot" data-step-dot="7"><span class="step-check">✓</span><span class="step-number">7</span></div>
+            </div>
+
+            <div class="step-container">
+              <form id="wizardForm" novalidate>
+                <section class="step-content question-card active" data-step="1" data-type="base">
+                  <p class="question-label">Step 1</p>
+                  <h2 class="question-text">Chi è il protagonista della storia?</h2>
+                  <p class="question-hint">Scegli punto di vista e imposta età per lessico suggerito.</p>
+
+                  <div class="radio-group">
+                    <label class="radio-option">
+                      <input type="radio" name="protagonistType" value="personal" checked>
+                      <span class="radio-dot"></span>
+                      <span>Nome del bambino (prima persona)</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="protagonistType" value="generic">
+                      <span class="radio-dot"></span>
+                      <span>Personaggio generico (terza persona)</span>
+                    </label>
+                  </div>
+
+                  <label class="field-label" for="protagonistName">Nome</label>
+                  <input id="protagonistName" name="protagonistName" class="story-input" type="text" placeholder="Es. Luca" maxlength="40">
+
+                  <label class="field-label" for="ageRange">Età approssimativa</label>
+                  <select id="ageRange" name="ageRange" class="story-input">
+                    <option value="3-5">3-5 anni</option>
+                    <option value="6-8" selected>6-8 anni</option>
+                    <option value="9-12">9-12 anni</option>
+                  </select>
+
+                  <p id="ageHint" class="hint-box"></p>
+                </section>
+
+                <section class="step-content question-card" data-step="2" data-type="base">
+                  <p class="question-label">Step 2</p>
+                  <h2 class="question-text">Qual è la situazione da spiegare?</h2>
+                  <p class="question-hint">Parti da testo libero, poi usa esempio rapido se utile.</p>
+
+                  <label class="field-label" for="situationInput">Descrizione libera</label>
+                  <textarea id="situationInput" name="situationInput" class="story-input" rows="4" placeholder="Es. Durante ricreazione Luca si agita quando c'è molta confusione."></textarea>
+                  <div id="situationComplexPreview" class="hint-box"></div>
+
+                  <p class="field-label">Esempi rapidi</p>
+                  <div id="situationExamples" class="suggestion-chips chips">
+                    <button type="button" class="chip" data-example="La ricreazione a scuola">La ricreazione a scuola</button>
+                    <button type="button" class="chip" data-example="Il momento della mensa">Il momento della mensa</button>
+                    <button type="button" class="chip" data-example="Andare dal medico">Andare dal medico</button>
+                    <button type="button" class="chip" data-example="Un nuovo compagno di classe">Un nuovo compagno di classe</button>
+                    <button type="button" class="chip" data-example="La gita scolastica">La gita scolastica</button>
+                    <button type="button" class="chip" data-example="Fare la fila">Fare la fila</button>
+                  </div>
+                </section>
+
+                <section class="step-content question-card" data-step="3" data-type="descriptive">
+                  <p class="question-label">Step 3 - Descrive</p>
+                  <h2 class="question-text">Cosa succede nella scena?</h2>
+                  <p class="question-hint">Ogni risposta crea frase descrittiva chiara e breve.</p>
+
+                  <div class="input-grid two-col">
+                    <div>
+                      <label class="field-label" for="whereInput">Dove succede?</label>
+                      <input id="whereInput" name="whereInput" class="story-input" type="text" placeholder="Es. A scuola">
+                    </div>
+                    <div>
+                      <label class="field-label" for="whenInput">Quando succede?</label>
+                      <input id="whenInput" name="whenInput" class="story-input" type="text" placeholder="Es. Durante ricreazione">
+                    </div>
+                    <div>
+                      <label class="field-label" for="whoInput">Chi c'è?</label>
+                      <input id="whoInput" name="whoInput" class="story-input" type="text" placeholder="Es. I miei compagni">
+                    </div>
+                    <div>
+                      <label class="field-label" for="whatOthersInput">Cosa fanno gli altri?</label>
+                      <input id="whatOthersInput" name="whatOthersInput" class="story-input" type="text" placeholder="Es. Giocano nel cortile">
+                    </div>
+                  </div>
+
+                  <p class="field-label">Anteprima frase descrittiva</p>
+                  <div id="descriptivePreview" class="hint-box"></div>
+                </section>
+
+                <section class="step-content question-card" data-step="4" data-type="perspective">
+                  <p class="question-label">Step 4 - Sente</p>
+                  <h2 class="question-text">Come si sentono le altre persone?</h2>
+                  <p class="question-hint">Aggiungi pensieri o emozioni di compagni e adulti.</p>
+
+                  <label class="field-label" for="perspectiveInput">Frase prospettica</label>
+                  <input id="perspectiveInput" name="perspectiveInput" class="story-input" type="text" placeholder="Es. I miei compagni sono contenti quando gioco con calma.">
+
+                  <label class="field-label" for="perspectiveExtraInput">Seconda frase prospettica (opzionale)</label>
+                  <input id="perspectiveExtraInput" name="perspectiveExtraInput" class="story-input" type="text" placeholder="Es. La maestra vuole che tutti stiano bene.">
+
+                  <div id="perspectiveExamples" class="suggestion-chips chips">
+                    <button type="button" class="chip" data-perspective="I miei compagni sono contenti quando parlo con calma.">I miei compagni sono contenti di...</button>
+                    <button type="button" class="chip" data-perspective="La maestra vuole che tutti si sentano al sicuro.">La maestra vuole che...</button>
+                    <button type="button" class="chip" data-perspective="Gli adulti si sentono tranquilli quando seguo i passaggi.">Gli adulti si sentono...</button>
+                  </div>
+                </section>
+
+                <section class="step-content question-card" data-step="5" data-type="directive">
+                  <p class="question-label">Step 5 - Fa</p>
+                  <h2 class="question-text">Cosa può fare il protagonista?</h2>
+                  <p class="question-hint">Inizia sempre con "Posso...", "Proverò a..." o "Potrei...".</p>
+
+                  <label class="field-label" for="directiveInput">Frase direttiva</label>
+                  <textarea id="directiveInput" name="directiveInput" class="story-input" rows="3" placeholder="Es. Posso fare un respiro lento e aspettare mio turno."></textarea>
+                  <p id="directiveWarning" class="warning-box" aria-live="polite"></p>
+                </section>
+
+                <section class="step-content question-card" data-step="6" data-type="affirmative">
+                  <p class="question-label">Step 6 - Rinforza</p>
+                  <h2 class="question-text">Scegli una chiusura positiva</h2>
+                  <p class="question-hint">Frase breve che rassicura e sostiene.</p>
+
+                  <div class="radio-group">
+                    <label class="radio-option">
+                      <input type="radio" name="affirmativePreset" value="Va bene se non riesco subito. Posso riprovare." checked>
+                      <span class="radio-dot"></span>
+                      <span>Va bene se non riesco subito. Posso riprovare.</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="affirmativePreset" value="Gli adulti mi possono aiutare.">
+                      <span class="radio-dot"></span>
+                      <span>Gli adulti mi possono aiutare.</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="affirmativePreset" value="custom">
+                      <span class="radio-dot"></span>
+                      <span>Scrivi la tua frase</span>
+                    </label>
+                  </div>
+
+                  <label class="field-label" for="affirmativeCustom">Frase personalizzata</label>
+                  <input id="affirmativeCustom" name="affirmativeCustom" class="story-input" type="text" placeholder="Es. Ogni piccolo passo è importante." disabled>
+                </section>
+
+                <section class="step-content question-card" data-step="7" data-type="base">
+                  <p class="question-label">Step 7</p>
+                  <h2 class="question-text">Personalizza stile e anteprima</h2>
+                  <p class="question-hint">Scegli aspetto finale prima di salvare o stampare.</p>
+
+                  <label class="field-label" for="storyTitle">Titolo della storia</label>
+                  <input id="storyTitle" name="storyTitle" class="story-input" type="text" placeholder="Es. La ricreazione di Luca" maxlength="80">
+
+                  <p class="field-label">Stile visivo</p>
+                  <div class="style-picker">
+                    <label class="style-card">
+                      <input type="radio" name="visualStyle" value="minimal">
+                      <div class="style-preview style-preview--minimal"></div>
+                      <div class="style-label">Minimal bianco</div>
+                    </label>
+                    <label class="style-card">
+                      <input type="radio" name="visualStyle" value="colorful" checked>
+                      <div class="style-preview style-preview--color"></div>
+                      <div class="style-label">Colorato</div>
+                    </label>
+                    <label class="style-card">
+                      <input type="radio" name="visualStyle" value="high-contrast">
+                      <div class="style-preview style-preview--contrast"></div>
+                      <div class="style-label">Alto contrasto</div>
+                    </label>
+                  </div>
+
+                  <p class="field-label">Spazio per immagini</p>
+                  <div class="radio-group radio-group--inline">
+                    <label class="radio-option">
+                      <input type="radio" name="imageSpace" value="none" checked>
+                      <span class="radio-dot"></span>
+                      <span>Nessuno</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="imageSpace" value="small">
+                      <span class="radio-dot"></span>
+                      <span>Piccolo</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="imageSpace" value="large">
+                      <span class="radio-dot"></span>
+                      <span>Grande</span>
+                    </label>
+                  </div>
+
+                  <p class="field-label">Font</p>
+                  <div class="radio-group radio-group--inline">
+                    <label class="radio-option">
+                      <input type="radio" name="fontChoice" value="standard" checked>
+                      <span class="radio-dot"></span>
+                      <span>Standard</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="fontChoice" value="dyslexic">
+                      <span class="radio-dot"></span>
+                      <span>OpenDyslexic</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="fontChoice" value="uppercase">
+                      <span class="radio-dot"></span>
+                      <span>Maiuscolo</span>
+                    </label>
+                  </div>
+                </section>
+              </form>
+            </div>
+
+            <div id="balanceStatus" class="status-box" aria-live="polite" aria-atomic="true"></div>
+            <div id="lexicalWarnings" class="status-box" aria-live="polite" aria-atomic="true"></div>
+
+            <div class="sentence-legend">
+              <div class="legend-item"><span class="legend-dot legend-dot--descriptive"></span>Descrive</div>
+              <div class="legend-item"><span class="legend-dot legend-dot--perspective"></span>Sente</div>
+              <div class="legend-item"><span class="legend-dot legend-dot--directive"></span>Fa</div>
+              <div class="legend-item"><span class="legend-dot legend-dot--affirmative"></span>Rinforza</div>
+            </div>
+          </aside>
+
+          <section class="preview-panel" aria-label="Anteprima storia">
+            <p class="preview-header">Anteprima in tempo reale</p>
+            <article id="storyPreview" class="story-preview image-none">
+              <h2 id="previewTitle" class="story-title">Nuova storia sociale</h2>
+              <p id="previewMeta" class="preview-meta"></p>
+              <div id="previewSentences" class="sentences"></div>
+            </article>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer id="appFooter" class="app-footer hidden">
+      <div class="footer-group">
+        <button id="backHomeBtn" class="btn btn-secondary" type="button">Storie salvate</button>
+      </div>
+      <div class="footer-group wizard-nav">
+        <button id="prevStepBtn" class="btn btn-secondary" type="button">Indietro</button>
+        <button id="nextStepBtn" class="btn btn-primary" type="button">Avanti</button>
+      </div>
+      <div class="footer-group footer-actions">
+        <button id="saveStoryBtn" class="btn btn-primary" type="button">Salva</button>
+        <button id="copyBtn" class="btn btn-secondary" type="button">Copia testo</button>
+        <button id="pdfBtn" class="btn btn-secondary" type="button">Scarica PDF</button>
+        <button id="printBtn" class="btn btn-secondary" type="button">Stampa</button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

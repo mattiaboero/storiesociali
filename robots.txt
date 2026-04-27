@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /*.css$
+Allow: /*.js$
+
+# Sitemap principale
+Sitemap: https://storiesociali.org/sitemap.xml
+
+# Riferimento per crawler LLM
+LLMS: https://storiesociali.org/llms.txt
