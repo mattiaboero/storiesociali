@@ -17,6 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>
+  <link rel="preload" href="https://fonts.gstatic.com/s/lora/v37/0QIvMX1D_JOuMwT7I_FMl_GW8g.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="dns-prefetch" href="//fonts.googleapis.com">
   <link rel="dns-prefetch" href="//fonts.gstatic.com">
   <link rel="dns-prefetch" href="//fonts.cdnfonts.com">
@@ -43,11 +44,7 @@
   <meta name="twitter:description" content="Wizard guidato per creare storie sociali in italiano, con export PDF e stampa.">
   <meta name="twitter:image" content="https://storiesociali.org/assets/og-storie-sociali.png">
 
-  <meta property="article:published_time" content="2026-04-27T10:00:00+02:00">
-  <meta property="article:modified_time" content="2026-04-27T10:00:00+02:00">
-
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
 
   <script type="application/ld+json">
   {
@@ -58,6 +55,9 @@
         "@id": "https://storiesociali.org/#organization",
         "name": "storiesociali.org",
         "url": "https://storiesociali.org/",
+        "sameAs": [
+          "https://github.com/mattiaboero/storiesociali"
+        ],
         "logo": {
           "@type": "ImageObject",
           "url": "https://storiesociali.org/assets/logo-storiesociali.svg"
@@ -80,6 +80,14 @@
         "url": "https://storiesociali.org/",
         "name": "storiesociali.org",
         "inLanguage": "it-IT",
+        "potentialAction": {
+          "@type": "CreateAction",
+          "target": "https://storiesociali.org/",
+          "object": {
+            "@type": "CreativeWork",
+            "name": "Storia sociale personalizzata"
+          }
+        },
         "publisher": {
           "@id": "https://storiesociali.org/#organization"
         }
@@ -417,15 +425,17 @@
                   <textarea id="situationInput" name="situationInput" class="story-input" rows="4" placeholder="Es. Durante ricreazione Luca si agita quando c'è molta confusione."></textarea>
                   <div id="situationComplexPreview" class="hint-box"></div>
 
-                  <p class="field-label">Esempi rapidi</p>
-                  <div id="situationExamples" class="suggestion-chips chips">
-                    <button type="button" class="chip" data-example="La ricreazione a scuola">La ricreazione a scuola</button>
-                    <button type="button" class="chip" data-example="Il momento della mensa">Il momento della mensa</button>
-                    <button type="button" class="chip" data-example="Andare dal medico">Andare dal medico</button>
-                    <button type="button" class="chip" data-example="Un nuovo compagno di classe">Un nuovo compagno di classe</button>
-                    <button type="button" class="chip" data-example="La gita scolastica">La gita scolastica</button>
-                    <button type="button" class="chip" data-example="Fare la fila">Fare la fila</button>
-                  </div>
+                  <fieldset class="field-group">
+                    <legend class="field-label">Esempi rapidi</legend>
+                    <div id="situationExamples" class="suggestion-chips chips">
+                      <button type="button" class="chip" data-example="La ricreazione a scuola">La ricreazione a scuola</button>
+                      <button type="button" class="chip" data-example="Il momento della mensa">Il momento della mensa</button>
+                      <button type="button" class="chip" data-example="Andare dal medico">Andare dal medico</button>
+                      <button type="button" class="chip" data-example="Un nuovo compagno di classe">Un nuovo compagno di classe</button>
+                      <button type="button" class="chip" data-example="La gita scolastica">La gita scolastica</button>
+                      <button type="button" class="chip" data-example="Fare la fila">Fare la fila</button>
+                    </div>
+                  </fieldset>
                 </section>
 
                 <section class="step-content question-card" data-step="3" data-type="descriptive">
@@ -452,8 +462,10 @@
                     </div>
                   </div>
 
-                  <p class="field-label">Anteprima frase descrittiva</p>
-                  <div id="descriptivePreview" class="hint-box"></div>
+                  <fieldset class="field-group">
+                    <legend class="field-label">Anteprima frase descrittiva</legend>
+                    <div id="descriptivePreview" class="hint-box"></div>
+                  </fieldset>
                 </section>
 
                 <section class="step-content question-card" data-step="4" data-type="perspective">
@@ -519,62 +531,68 @@
                   <label class="field-label" for="storyTitle">Titolo della storia</label>
                   <input id="storyTitle" name="storyTitle" class="story-input" type="text" placeholder="Es. La ricreazione di Luca" maxlength="80">
 
-                  <p class="field-label">Stile visivo</p>
-                  <div class="style-picker">
-                    <label class="style-card">
-                      <input type="radio" name="visualStyle" value="minimal">
-                      <div class="style-preview style-preview--minimal"></div>
-                      <div class="style-label">Minimal bianco</div>
-                    </label>
-                    <label class="style-card">
-                      <input type="radio" name="visualStyle" value="colorful" checked>
-                      <div class="style-preview style-preview--color"></div>
-                      <div class="style-label">Colorato</div>
-                    </label>
-                    <label class="style-card">
-                      <input type="radio" name="visualStyle" value="high-contrast">
-                      <div class="style-preview style-preview--contrast"></div>
-                      <div class="style-label">Alto contrasto</div>
-                    </label>
-                  </div>
+                  <fieldset class="field-group">
+                    <legend class="field-label">Stile visivo</legend>
+                    <div class="style-picker">
+                      <label class="style-card">
+                        <input type="radio" name="visualStyle" value="minimal">
+                        <div class="style-preview style-preview--minimal"></div>
+                        <div class="style-label">Minimal bianco</div>
+                      </label>
+                      <label class="style-card">
+                        <input type="radio" name="visualStyle" value="colorful" checked>
+                        <div class="style-preview style-preview--color"></div>
+                        <div class="style-label">Colorato</div>
+                      </label>
+                      <label class="style-card">
+                        <input type="radio" name="visualStyle" value="high-contrast">
+                        <div class="style-preview style-preview--contrast"></div>
+                        <div class="style-label">Alto contrasto</div>
+                      </label>
+                    </div>
+                  </fieldset>
 
-                  <p class="field-label">Spazio per immagini</p>
-                  <div class="radio-group radio-group--inline">
-                    <label class="radio-option">
-                      <input type="radio" name="imageSpace" value="none" checked>
-                      <span class="radio-dot"></span>
-                      <span>Nessuno</span>
-                    </label>
-                    <label class="radio-option">
-                      <input type="radio" name="imageSpace" value="small">
-                      <span class="radio-dot"></span>
-                      <span>Piccolo</span>
-                    </label>
-                    <label class="radio-option">
-                      <input type="radio" name="imageSpace" value="large">
-                      <span class="radio-dot"></span>
-                      <span>Grande</span>
-                    </label>
-                  </div>
+                  <fieldset class="field-group">
+                    <legend class="field-label">Spazio per immagini</legend>
+                    <div class="radio-group radio-group--inline">
+                      <label class="radio-option">
+                        <input type="radio" name="imageSpace" value="none" checked>
+                        <span class="radio-dot"></span>
+                        <span>Nessuno</span>
+                      </label>
+                      <label class="radio-option">
+                        <input type="radio" name="imageSpace" value="small">
+                        <span class="radio-dot"></span>
+                        <span>Piccolo</span>
+                      </label>
+                      <label class="radio-option">
+                        <input type="radio" name="imageSpace" value="large">
+                        <span class="radio-dot"></span>
+                        <span>Grande</span>
+                      </label>
+                    </div>
+                  </fieldset>
 
-                  <p class="field-label">Font</p>
-                  <div class="radio-group radio-group--inline">
-                    <label class="radio-option">
-                      <input type="radio" name="fontChoice" value="standard" checked>
-                      <span class="radio-dot"></span>
-                      <span>Standard</span>
-                    </label>
-                    <label class="radio-option">
-                      <input type="radio" name="fontChoice" value="dyslexic">
-                      <span class="radio-dot"></span>
-                      <span>OpenDyslexic</span>
-                    </label>
-                    <label class="radio-option">
-                      <input type="radio" name="fontChoice" value="uppercase">
-                      <span class="radio-dot"></span>
-                      <span>Maiuscolo</span>
-                    </label>
-                  </div>
+                  <fieldset class="field-group">
+                    <legend class="field-label">Font</legend>
+                    <div class="radio-group radio-group--inline">
+                      <label class="radio-option">
+                        <input type="radio" name="fontChoice" value="standard" checked>
+                        <span class="radio-dot"></span>
+                        <span>Standard</span>
+                      </label>
+                      <label class="radio-option">
+                        <input type="radio" name="fontChoice" value="dyslexic">
+                        <span class="radio-dot"></span>
+                        <span>OpenDyslexic</span>
+                      </label>
+                      <label class="radio-option">
+                        <input type="radio" name="fontChoice" value="uppercase">
+                        <span class="radio-dot"></span>
+                        <span>Maiuscolo</span>
+                      </label>
+                    </div>
+                  </fieldset>
                 </section>
               </form>
             </div>

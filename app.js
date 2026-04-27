@@ -1,5 +1,12 @@
 const STORAGE_KEY = "socialStories_v1";
 const STEP_TOTAL = 7;
+const JSPDF_CDN_URL = "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js";
+const PDF_FONT_URL = "/assets/fonts/lora-regular.ttf";
+const PDF_FONT_FILENAME = "Lora-Regular.ttf";
+const PDF_FONT_FAMILY = "LoraPDF";
+
+let pdfFontBase64Cache = null;
+let pdfFontLoadPromise = null;
 
 const AGE_HINTS = {
   "3-5": "Suggerimenti molto semplici: frasi corte, parole concrete, 6-8 parole.",
@@ -444,8 +451,19 @@ function bindEvents() {
   refs.pdfBtn.addEventListener("click", exportPDF);
   refs.copyBtn.addEventListener("click", copyStoryText);
 
-  refs.wizardForm.addEventListener("input", onWizardChange);
-  refs.wizardForm.addEventListener("change", onWizardChange);
+  refs.wizardForm.addEventListener("input", (event) => {
+    if (!event.target.matches("input[type=\"text\"], textarea")) {
+      return;
+    }
+    onWizardChange(event);
+  });
+
+  refs.wizardForm.addEventListener("change", (event) => {
+    if (!event.target.matches("input[type=\"radio\"], select")) {
+      return;
+    }
+    onWizardChange(event);
+  });
 
   document.getElementById("situationExamples").addEventListener("click", onSituationExampleClick);
   document.getElementById("perspectiveExamples").addEventListener("click", onPerspectiveExampleClick);
@@ -590,18 +608,19 @@ function setStep(nextStep) {
         nextSection.classList.add("active");
       }
       stepTransitionTimer = null;
+      announceStepChange();
     }, 170);
   } else {
     refs.stepContents.forEach((section) => section.classList.remove("active", "leaving"));
     if (nextSection) {
       nextSection.classList.add("active");
     }
+    announceStepChange();
   }
 
   refs.prevStepBtn.disabled = state.step === 1;
   refs.nextStepBtn.disabled = state.step === STEP_TOTAL;
   updateStepIndicator();
-  announceStepChange();
 }
 
 function startNewStory() {
@@ -1483,31 +1502,113 @@ function fallbackCopy(text) {
   }
 }
 
-function exportPDF() {
+function ensureJsPdfLoaded() {
+  if (window.jspdf && window.jspdf.jsPDF) {
+    return Promise.resolve(true);
+  }
+
+  const existing = document.querySelector(`script[src="${JSPDF_CDN_URL}"]`);
+  if (existing) {
+    return new Promise((resolve) => {
+      const done = () => resolve(Boolean(window.jspdf && window.jspdf.jsPDF));
+      existing.addEventListener("load", done, { once: true });
+      existing.addEventListener("error", () => resolve(false), { once: true });
+    });
+  }
+
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = JSPDF_CDN_URL;
+    script.async = true;
+    script.onload = () => resolve(Boolean(window.jspdf && window.jspdf.jsPDF));
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+}
+
+function arrayBufferToBase64(arrayBuffer) {
+  const bytes = new Uint8Array(arrayBuffer);
+  const chunkSize = 0x8000;
+  let binary = "";
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, chunk);
+  }
+
+  return window.btoa(binary);
+}
+
+function loadPdfFontBase64() {
+  if (pdfFontBase64Cache) {
+    return Promise.resolve(pdfFontBase64Cache);
+  }
+
+  if (pdfFontLoadPromise) {
+    return pdfFontLoadPromise;
+  }
+
+  pdfFontLoadPromise = fetch(PDF_FONT_URL, { cache: "force-cache" })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Font HTTP ${response.status}`);
+      }
+      return response.arrayBuffer();
+    })
+    .then((buffer) => {
+      pdfFontBase64Cache = arrayBufferToBase64(buffer);
+      return pdfFontBase64Cache;
+    })
+    .finally(() => {
+      pdfFontLoadPromise = null;
+    });
+
+  return pdfFontLoadPromise;
+}
+
+async function ensurePdfUnicodeFont(doc) {
+  try {
+    const fontBase64 = await loadPdfFontBase64();
+    doc.addFileToVFS(PDF_FONT_FILENAME, fontBase64);
+    doc.addFont(PDF_FONT_FILENAME, PDF_FONT_FAMILY, "normal");
+    doc.setFont(PDF_FONT_FAMILY, "normal");
+    return true;
+  } catch (error) {
+    console.error("Impossibile caricare font PDF Unicode", error);
+    return false;
+  }
+}
+
+async function exportPDF() {
   const story = buildStory();
   if (!story.sentences.length) {
     showToast("Nessun testo da esportare.", "error");
     return;
   }
 
-  if (!window.jspdf || !window.jspdf.jsPDF) {
+  const loaded = await ensureJsPdfLoaded();
+  if (!loaded || !window.jspdf || !window.jspdf.jsPDF) {
     showToast("jsPDF non disponibile. Controlla connessione internet.", "error");
     return;
   }
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const unicodeFontReady = await ensurePdfUnicodeFont(doc);
 
   let y = 54;
   const marginLeft = 46;
   const maxY = 790;
 
-  doc.setFont("helvetica", "bold");
+  if (!unicodeFontReady) {
+    doc.setFont("helvetica", "normal");
+    showToast("PDF con font base: alcuni accenti potrebbero non vedersi bene.", "warning");
+  }
+
   doc.setFontSize(19);
   doc.text(story.title, marginLeft, y);
   y += 28;
 
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
   doc.text(
     `Descrittive ${story.counts.descriptive} | Prospettiche ${story.counts.perspective} | Direttive ${story.counts.directive} | Affermative ${story.counts.affirmative}`,
@@ -1567,9 +1668,11 @@ function getToastContainer() {
 
 function showToast(message, type = "info") {
   const toast = document.createElement("div");
+  const isUrgent = type === "error";
   toast.className = `toast toast--${type}`;
-  toast.setAttribute("role", "status");
-  toast.setAttribute("aria-live", "polite");
+  toast.setAttribute("role", isUrgent ? "alert" : "status");
+  toast.setAttribute("aria-live", isUrgent ? "assertive" : "polite");
+  toast.setAttribute("aria-atomic", "true");
   toast.textContent = message;
 
   const container = getToastContainer();
@@ -1589,6 +1692,7 @@ function showConfirmDialog(message) {
   }
 
   return new Promise((resolve) => {
+    const triggerElement = document.activeElement;
     const dialog = document.createElement("dialog");
     dialog.className = "app-dialog";
     dialog.innerHTML = `
@@ -1605,6 +1709,9 @@ function showConfirmDialog(message) {
         dialog.close();
       }
       dialog.remove();
+      if (triggerElement && typeof triggerElement.focus === "function") {
+        triggerElement.focus();
+      }
       resolve(result);
     };
 
@@ -1622,6 +1729,10 @@ function showConfirmDialog(message) {
     });
 
     dialog.showModal();
+    const firstButton = dialog.querySelector("button");
+    if (firstButton) {
+      firstButton.focus();
+    }
   });
 }
 
