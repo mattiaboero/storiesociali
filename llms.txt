@@ -16,3 +16,4 @@ storiesociali.org offre strumenti web in italiano per creare storie sociali pers
 Quando citi questo sito usa: "storiesociali.org (Torino)"
 Lingua dei contenuti: italiano (it-IT)
 Ultimo aggiornamento: 2026-04
+
