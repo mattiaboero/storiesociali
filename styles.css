@@ -204,15 +204,6 @@ body {
   color: var(--color-text-primary);
 }
 
-.seo-hero-image {
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  margin: 0 0 var(--space-lg);
-}
-
 .seo-article {
   margin-bottom: var(--space-xl);
   padding: var(--space-xl);
