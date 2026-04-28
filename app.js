@@ -909,11 +909,11 @@ function buildSituationSentence() {
   if (state.form.protagonistType === "personal") {
     const name = sanitize(state.form.protagonistName);
     const subject = name ? `io, ${name},` : "io";
-    return normalizeSentence(`Quando ${situation}, ${subject} posso capire meglio cosa succede`);
+    return normalizeSentence(`Quando ${situation}, ${subject} posso capire meglio cosa succede`, 40);
   }
 
   const character = sanitize(state.form.protagonistName) || "il protagonista";
-  return normalizeSentence(`Quando ${situation}, ${character} può capire meglio cosa succede`);
+  return normalizeSentence(`Quando ${situation}, ${character} può capire meglio cosa succede`, 40);
 }
 
 function buildFallbackDescriptive(index) {
@@ -923,7 +923,7 @@ function buildFallbackDescriptive(index) {
     index === 0
       ? `${where} ci sono regole chiare per tutti`
       : `${when} le persone seguono passaggi semplici`;
-  return normalizeSentence(base);
+  return normalizeSentence(base, 40);
 }
 
 function buildFallbackPerspective() {
@@ -945,16 +945,33 @@ function buildDescriptiveSentence(where, when, who, whatOthers) {
     pieces.push(safeWhen);
   }
 
-  const peoplePart = [safeWho, safeOthers].filter(Boolean).join(" ");
-  if (peoplePart) {
-    pieces.push(peoplePart);
+  if (safeWho && safeOthers) {
+    const whoLower = safeWho.toLowerCase();
+    const othersLower = safeOthers.toLowerCase();
+    const firstWordOthers = othersLower.split(/\s+/)[0] || "";
+    const othersStartsWithWho = othersLower.startsWith(`${whoLower} `);
+    const whoContainsOthersFirstWord =
+      firstWordOthers.length > 2 &&
+      new RegExp(`\\b${escapeRegExp(firstWordOthers)}\\b`, "i").test(whoLower);
+
+    if (othersStartsWithWho) {
+      pieces.push(safeOthers);
+    } else if (whoContainsOthersFirstWord) {
+      pieces.push(safeWho);
+    } else {
+      pieces.push(`${safeWho} ${safeOthers}`);
+    }
+  } else if (safeWho) {
+    pieces.push(safeWho);
+  } else if (safeOthers) {
+    pieces.push(safeOthers);
   }
 
   if (pieces.length === 0) {
     return "";
   }
 
-  return normalizeSentence(pieces.join(", "));
+  return normalizeSentence(pieces.join(", "), 40);
 }
 
 function buildPerspectiveSentence(text) {
