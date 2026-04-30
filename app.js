@@ -10,6 +10,8 @@ const PDF_FONT_FAMILY = "LoraPDF";
 
 let pdfFontBase64Cache = null;
 let pdfFontLoadPromise = null;
+let dyslexicFontLoaded = false;
+let visualStateToken = 0;
 
 const AGE_HINTS = {
   "3-5": "Suggerimenti molto semplici: frasi corte, parole concrete, 6-8 parole.",
@@ -784,8 +786,12 @@ function updateSituationComplexPreview() {
 
 function updateDirectiveWarning() {
   const directiveText = sanitize(state.form.directive);
+  const input = document.getElementById("directiveInput");
   if (!directiveText) {
     refs.directiveWarning.textContent = "";
+    if (input) {
+      input.removeAttribute("aria-invalid");
+    }
     return true;
   }
 
@@ -801,6 +807,13 @@ function updateDirectiveWarning() {
   }
 
   refs.directiveWarning.textContent = issues.join(" ");
+  if (input) {
+    if (issues.length > 0) {
+      input.setAttribute("aria-invalid", "true");
+    } else {
+      input.removeAttribute("aria-invalid");
+    }
+  }
   return issues.length === 0;
 }
 
@@ -812,8 +825,46 @@ function updatePreviewAndGuidance() {
   renderLexicalWarnings();
 }
 
+function loadDyslexicFont() {
+  if (dyslexicFontLoaded) {
+    return Promise.resolve();
+  }
+
+  const existing = document.querySelector("link[data-font='open-dyslexic']");
+  if (existing) {
+    return new Promise((resolve, reject) => {
+      if (existing.dataset.loaded === "true") {
+        dyslexicFontLoaded = true;
+        resolve();
+        return;
+      }
+      existing.addEventListener("load", () => {
+        existing.dataset.loaded = "true";
+        dyslexicFontLoaded = true;
+        resolve();
+      }, { once: true });
+      existing.addEventListener("error", () => reject(new Error("Font OpenDyslexic non caricato")), { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://fonts.cdnfonts.com/css/open-dyslexic";
+    link.dataset.font = "open-dyslexic";
+    link.onload = () => {
+      link.dataset.loaded = "true";
+      dyslexicFontLoaded = true;
+      resolve();
+    };
+    link.onerror = () => reject(new Error("Font OpenDyslexic non disponibile"));
+    document.head.appendChild(link);
+  });
+}
+
 function applyVisualSettings() {
   const body = document.body;
+  const token = ++visualStateToken;
 
   body.classList.remove("theme--minimal", "theme--colorful", "theme--contrast");
   body.classList.remove("font-standard", "font-dyslexic", "font-uppercase");
@@ -825,7 +876,23 @@ function applyVisualSettings() {
   };
 
   body.classList.add(themeMap[state.form.visualStyle] || "theme--colorful");
-  body.classList.add(`font-${state.form.fontChoice}`);
+  if (state.form.fontChoice === "dyslexic") {
+    loadDyslexicFont()
+      .then(() => {
+        if (token !== visualStateToken || state.form.fontChoice !== "dyslexic") {
+          return;
+        }
+        body.classList.add("font-dyslexic");
+      })
+      .catch(() => {
+        if (token !== visualStateToken || state.form.fontChoice !== "dyslexic") {
+          return;
+        }
+        body.classList.add("font-dyslexic");
+      });
+  } else {
+    body.classList.add(`font-${state.form.fontChoice}`);
+  }
 
   refs.storyPreview.classList.remove("image-none", "image-small", "image-large");
   refs.storyPreview.classList.add(`image-${state.form.imageSpace}`);
@@ -1068,7 +1135,7 @@ function normalizeSentence(text, maxWordsOverride) {
 
 function getSentenceWordLimit() {
   const limitsByAge = {
-    "3-5": 10,
+    "3-5": 8,
     "6-8": 11,
     "9-12": 12
   };

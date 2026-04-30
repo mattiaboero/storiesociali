@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Storie Sociali: Generatore Online Gratis per Scuola e Famiglia</title>
+  <title>Generatore di Storie Sociali in Italiano | storiesociali.org</title>
   <meta name="description" content="Crea storie sociali personalizzate in italiano con wizard guidato. Stampa, PDF, copy testo e supporto leggibilità per bambini, insegnanti e famiglie.">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="author" content="Redazione storiesociali.org">
@@ -17,13 +17,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>
   <link rel="preload" href="https://fonts.gstatic.com/s/lora/v37/0QIvMX1D_JOuMwT7I_FMl_GW8g.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="dns-prefetch" href="//fonts.googleapis.com">
   <link rel="dns-prefetch" href="//fonts.gstatic.com">
-  <link rel="dns-prefetch" href="//fonts.cdnfonts.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap">
-  <link href="https://fonts.cdnfonts.com/css/open-dyslexic" rel="stylesheet">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/assets/logo-storiesociali.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/assets/icon-192.png">
@@ -102,7 +99,7 @@
         "url": "https://storiesociali.org/",
         "inLanguage": "it-IT",
         "datePublished": "2026-04-27",
-        "dateModified": "2026-04-27",
+        "dateModified": "2026-04-30",
         "author": {
           "@type": "Person",
           "name": "Redazione storiesociali.org",
@@ -120,8 +117,8 @@
         "@id": "https://storiesociali.org/#app",
         "name": "Generatore di Storie Sociali",
         "applicationCategory": "EducationalApplication",
-        "operatingSystem": "Web",
-        "browserRequirements": "Browser moderno con JavaScript abilitato",
+        "applicationSubCategory": "Productivity",
+        "browserRequirements": "Requires JavaScript. Modern browser (Chrome 80+, Firefox 75+, Safari 13+).",
         "url": "https://storiesociali.org/",
         "inLanguage": "it-IT",
         "offers": {
@@ -198,26 +195,26 @@
         "mainEntity": [
           {
             "@type": "Question",
-            "name": "Cos'è una storia sociale?",
+            "name": "Il generatore salva i dati su server esterni?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Una storia sociale è un testo breve che aiuta un bambino a capire una situazione concreta, come la ricreazione o la mensa. Descrive cosa succede, come possono sentirsi gli altri e quali azioni possono aiutare il protagonista. Quando è scritta in modo chiaro e prevedibile, riduce ansia e incertezza."
+              "text": "No. Le storie sono salvate nel browser locale tramite localStorage e restano sul dispositivo in uso."
             }
           },
           {
             "@type": "Question",
-            "name": "Come funziona il rapporto tra i tipi di frase?",
+            "name": "Posso stampare con formattazione leggibile per bambini?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Il wizard guida alla distribuzione consigliata nelle Social Stories: più frasi descrittive, una o due frasi prospettiche, una frase direttiva con formulazione gentile e una o due frasi affermative di chiusura. Questo equilibrio rende la storia informativa e rassicurante, evitando toni prescrittivi troppo rigidi."
+              "text": "Sì. L'output usa un layout ottimizzato per stampa con interlinea ampia e font selezionabile."
             }
           },
           {
             "@type": "Question",
-            "name": "Posso usare il generatore senza account?",
+            "name": "Come viene gestita la semplificazione lessicale?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Sì. L'app funziona interamente nel browser e non richiede registrazione. Le storie create vengono salvate in localStorage sul dispositivo in uso, quindi restano disponibili nello stesso browser. Puoi anche copiare il testo, stampare direttamente o esportare in PDF per archiviarlo fuori dall'app."
+              "text": "Il sistema evidenzia termini complessi e propone sostituzioni più semplici nel pannello laterale. Le sostituzioni non vengono applicate automaticamente: l'utente decide prima del salvataggio."
             }
           },
           {
@@ -225,7 +222,7 @@
             "name": "Il testo viene semplificato automaticamente?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Sì, il sistema segnala parole complesse e propone sostituzioni più semplici, soprattutto nella descrizione libera della situazione. L'obiettivo è mantenere frasi brevi e comprensibili per bambini con età diverse. L'utente può comunque modificare ogni frase prima del salvataggio finale o della stampa."
+              "text": "Sì, il sistema segnala parole complesse e propone sostituzioni più semplici durante la scrittura. L'obiettivo è mantenere frasi brevi e comprensibili per bambini con età diverse. L'utente può modificare ogni frase prima del salvataggio finale o della stampa."
             }
           }
         ]
@@ -244,7 +241,7 @@
   <div id="stepAnnouncer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
   <div class="app-layout">
     <header class="app-header">
-      <div class="app-logo">Raccont<span>ami</span></div>
+      <div class="app-logo">Raccont<span>ami</span><small class="app-logo-domain">storiesociali.org</small></div>
       <div id="headerStepText" class="header-step-text">Archivio storie</div>
     </header>
 
@@ -254,6 +251,11 @@
           <div class="home-header home-header--hero">
             <div>
               <h1>Generatore di Storie Sociali in Italiano</h1>
+              <p class="seo-definition">
+                Una <strong>storia sociale</strong> è un testo breve strutturato che descrive una situazione
+                quotidiana in modo concreto e prevedibile, per aiutare bambini con autismo o difficoltà sociali
+                a capire cosa succede e come comportarsi. Il metodo è stato sviluppato da Carol Gray negli anni '90.
+              </p>
               <p class="seo-lead">
                 Il Generatore di Storie Sociali crea testi personalizzati, brevi e stampabili per spiegare
                 situazioni quotidiane a bambini in modo chiaro. Il wizard guida la scrittura con equilibrio
@@ -336,14 +338,22 @@
 
             <section id="faq-storie-sociali">
               <h2>Domande frequenti sul generatore di storie sociali</h2>
-              <dl>
-                <dt>Il generatore salva i dati su server esterni?</dt>
-                <dd>No. Le storie sono salvate nel browser locale tramite localStorage e restano sul dispositivo usato.</dd>
-                <dt>Posso stampare con formattazione leggibile per bambini?</dt>
-                <dd>Sì. L'output usa un layout ottimizzato per stampa con interlinea ampia, gestione immagini e font selezionabile.</dd>
-                <dt>Come viene gestita la semplificazione lessicale?</dt>
-                <dd>La piattaforma evidenzia termini complessi e propone sostituzioni più semplici durante la scrittura.</dd>
-              </dl>
+              <details>
+                <summary>Il generatore salva i dati su server esterni?</summary>
+                <p>No. Le storie sono salvate nel browser locale tramite localStorage e restano sul dispositivo in uso.</p>
+              </details>
+              <details>
+                <summary>Posso stampare con formattazione leggibile per bambini?</summary>
+                <p>Sì. L'output usa un layout ottimizzato per stampa con interlinea ampia e font selezionabile.</p>
+              </details>
+              <details>
+                <summary>Come viene gestita la semplificazione lessicale?</summary>
+                <p>Il sistema evidenzia termini complessi e propone sostituzioni più semplici nel pannello laterale. Le sostituzioni non vengono applicate automaticamente: l'utente decide prima del salvataggio.</p>
+              </details>
+              <details>
+                <summary>Il testo viene semplificato automaticamente?</summary>
+                <p>Sì, il sistema segnala parole complesse e propone sostituzioni più semplici durante la scrittura. L'obiettivo è mantenere frasi brevi e comprensibili per bambini con età diverse. L'utente può modificare ogni frase prima del salvataggio finale o della stampa.</p>
+              </details>
             </section>
 
             <section id="fonti-storie-sociali">
@@ -412,7 +422,7 @@
               <form id="wizardForm" novalidate>
                 <section class="step-content question-card active" data-step="1" data-type="base">
                   <p class="question-label">Step 1</p>
-                  <h2 class="question-text">Chi è il protagonista della storia?</h2>
+                  <p class="question-text" role="heading" aria-level="3">Chi è il protagonista della storia?</p>
                   <p class="question-hint">Scegli punto di vista e imposta età per lessico suggerito.</p>
 
                   <div class="radio-group">
@@ -443,11 +453,11 @@
 
                 <section class="step-content question-card" data-step="2" data-type="base">
                   <p class="question-label">Step 2</p>
-                  <h2 class="question-text">Qual è la situazione da spiegare?</h2>
+                  <p class="question-text" role="heading" aria-level="3">Qual è la situazione da spiegare?</p>
                   <p class="question-hint">Parti da testo libero, poi usa esempio rapido se utile.</p>
 
                   <label class="field-label" for="situationInput">Descrizione libera</label>
-                  <textarea id="situationInput" name="situationInput" class="story-input" rows="4" placeholder="Es. Durante ricreazione Luca si agita quando c'è molta confusione."></textarea>
+                  <textarea id="situationInput" name="situationInput" class="story-input" rows="4" aria-required="true" placeholder="Es. Durante ricreazione Luca si agita quando c'è molta confusione."></textarea>
                   <div id="situationComplexPreview" class="hint-box"></div>
 
                   <fieldset class="field-group">
@@ -465,7 +475,7 @@
 
                 <section class="step-content question-card" data-step="3" data-type="descriptive">
                   <p class="question-label">Step 3 - Descrive</p>
-                  <h2 class="question-text">Cosa succede nella scena?</h2>
+                  <p class="question-text" role="heading" aria-level="3">Cosa succede nella scena?</p>
                   <p class="question-hint">Ogni risposta crea frase descrittiva chiara e breve.</p>
 
                   <div class="input-grid two-col">
@@ -495,7 +505,7 @@
 
                 <section class="step-content question-card" data-step="4" data-type="perspective">
                   <p class="question-label">Step 4 - Sente</p>
-                  <h2 class="question-text">Come si sentono le altre persone?</h2>
+                  <p class="question-text" role="heading" aria-level="3">Come si sentono le altre persone?</p>
                   <p class="question-hint">Aggiungi pensieri o emozioni di compagni e adulti.</p>
 
                   <label class="field-label" for="perspectiveInput">Frase prospettica</label>
@@ -513,17 +523,17 @@
 
                 <section class="step-content question-card" data-step="5" data-type="directive">
                   <p class="question-label">Step 5 - Fa</p>
-                  <h2 class="question-text">Cosa può fare il protagonista?</h2>
+                  <p class="question-text" role="heading" aria-level="3">Cosa può fare il protagonista?</p>
                   <p class="question-hint">Inizia sempre con "Posso...", "Proverò a..." o "Potrei...".</p>
 
                   <label class="field-label" for="directiveInput">Frase direttiva</label>
-                  <textarea id="directiveInput" name="directiveInput" class="story-input" rows="3" placeholder="Es. Posso fare un respiro lento e aspettare mio turno."></textarea>
+                  <textarea id="directiveInput" name="directiveInput" class="story-input" rows="3" aria-required="true" aria-describedby="directiveWarning" placeholder="Es. Posso fare un respiro lento e aspettare mio turno."></textarea>
                   <p id="directiveWarning" class="warning-box" aria-live="polite"></p>
                 </section>
 
                 <section class="step-content question-card" data-step="6" data-type="affirmative">
                   <p class="question-label">Step 6 - Rinforza</p>
-                  <h2 class="question-text">Scegli una chiusura positiva</h2>
+                  <p class="question-text" role="heading" aria-level="3">Scegli una chiusura positiva</p>
                   <p class="question-hint">Frase breve che rassicura e sostiene.</p>
 
                   <div class="radio-group">
@@ -550,7 +560,7 @@
 
                 <section class="step-content question-card" data-step="7" data-type="base">
                   <p class="question-label">Step 7</p>
-                  <h2 class="question-text">Personalizza stile e anteprima</h2>
+                  <p class="question-text" role="heading" aria-level="3">Personalizza stile e anteprima</p>
                   <p class="question-hint">Scegli aspetto finale prima di salvare o stampare.</p>
 
                   <label class="field-label" for="storyTitle">Titolo della storia</label>
@@ -662,6 +672,6 @@
     </footer>
   </div>
 
-  <script src="app.js?v=20260430" defer></script>
+  <script src="app.js?v=20260430b" defer></script>
 </body>
 </html>

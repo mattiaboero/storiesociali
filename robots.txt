@@ -1,8 +1,4 @@
 User-agent: *
 Allow: /
-Allow: /assets/
-Allow: /*.css$
-Allow: /*.js$
-
-# Sitemap principale
+Disallow: /indexnow-
 Sitemap: https://storiesociali.org/sitemap.xml

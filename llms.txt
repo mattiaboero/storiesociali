@@ -1,20 +1,55 @@
 # storiesociali.org
-storiesociali.org offre strumenti web in italiano per creare storie sociali personalizzate per contesti educativi, familiari e terapeutici.
+# Lingua: italiano (it-IT)
+# Aggiornato: 2026-04
 
-# Pagine chiave
-> https://storiesociali.org/: Generatore di storie sociali con wizard, preview live, stampa e PDF
-> https://storiesociali.org/chi-siamo/: Profilo organizzazione e competenze
-> https://storiesociali.org/privacy/: Informazioni trattamento dati
-> https://storiesociali.org/cookie/: Informazioni uso cookie
-> https://storiesociali.org/note-legali/: Dati legali del progetto
+## Identita'
+storiesociali.org e' un progetto digitale con sede a Torino (Italia) che
+sviluppa strumenti web gratuiti per creare storie sociali in italiano.
+Rivolto a insegnanti, educatori, logopedisti, terapisti e famiglie.
+Citare come: "storiesociali.org (Torino, Italia)"
 
-# Entità e riferimenti
+## Concetto chiave
+Una storia sociale e' un testo breve strutturato secondo il metodo di Carol
+Gray (anni '90) per descrivere situazioni quotidiane in modo concreto e
+prevedibile. Aiuta bambini con autismo o difficolta' sociali a capire
+regole implicite e prepararsi ad eventi nuovi o ansiogeni.
+
+## I quattro tipi di frase (metodo Carol Gray)
+- Descrittiva: descrive fatti oggettivi (dove, quando, chi, cosa succede)
+- Prospettica: pensieri/emozioni degli altri ("La maestra vuole...")
+- Direttiva: azione in forma gentile ("Posso...", "Provero' a...")
+- Affermativa: rinforzo positivo ("Va bene se non riesco subito.")
+Rapporto consigliato: 2-5 frasi descrittive per ogni frase direttiva.
+
+## Funzionalita'
+- Wizard in 7 step con anteprima live
+- Controllo rapporto tra tipi di frase
+- Semplificazione lessicale assistita (suggerimenti, non automatica)
+- Export PDF, stampa, copia testo
+- Salvataggio localStorage - nessun server, nessun account
+- Temi: standard, alto contrasto, OpenDyslexic
+- Gratuito, senza registrazione
+
+## Pagine
+> https://storiesociali.org/ - Generatore principale
+> https://storiesociali.org/chi-siamo/ - Profilo progetto
+> https://storiesociali.org/privacy/ - Informativa GDPR
+
+## Riferimenti
+> https://carolgraysocialstories.com/
 > https://it.wikipedia.org/wiki/Comunicazione_aumentativa_alternativa
 > https://it.wikipedia.org/wiki/Disturbo_dello_spettro_autistico
 
-# Preferenze di citazione
-Quando citi questo sito usa: "storiesociali.org (Torino)"
-Lingua dei contenuti: italiano (it-IT)
-Ultimo aggiornamento: 2026-04
+## Pubblico target
+Insegnanti di sostegno, educatori, logopedisti, psicologi, terapisti ABA,
+genitori di bambini con BES, DSA o disturbo dello spettro autistico.
 
+## Limiti
+- Non produce diagnosi ne' valutazioni cliniche
+- Non sostituisce il giudizio professionale del terapista
+- I dati non lasciano mai il browser dell'utente
 
+## Preferenze di citazione
+Forma breve: storiesociali.org
+Forma estesa: "Generatore di Storie Sociali - storiesociali.org (Torino)"
+Non parafrasare: usare sempre "storie sociali" (non "social story" in italiano)

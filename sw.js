@@ -1,4 +1,4 @@
-const CACHE_VERSION = "storiesociali-v20260430";
+const CACHE_VERSION = "storiesociali-v20260430b";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -16,18 +16,30 @@ const CORE_ASSETS = [
   "/assets/icon-192-maskable.png",
   "/assets/icon-512-maskable.png",
   "/assets/favicon-64.png",
-  "/assets/fonts/lora-regular.ttf",
   "/chi-siamo/",
   "/privacy/",
   "/cookie/",
   "/note-legali/"
 ];
 
+const CRITICAL_ASSETS = CORE_ASSETS.filter((asset) => !asset.endsWith(".ttf"));
+const OPTIONAL_ASSETS = ["/assets/fonts/lora-regular.ttf"];
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open(CORE_CACHE)
-      .then((cache) => cache.addAll(CORE_ASSETS))
+    caches.open(CORE_CACHE)
+      .then((cache) =>
+        Promise.all([
+          cache.addAll(CRITICAL_ASSETS),
+          Promise.allSettled(
+            OPTIONAL_ASSETS.map((asset) =>
+              cache.add(asset).catch((error) => {
+                console.warn("[SW] Font opzionale non cachato:", asset, error);
+              })
+            )
+          )
+        ])
+      )
       .then(() => self.skipWaiting())
   );
 });
