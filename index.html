@@ -11,6 +11,7 @@
 
   <link rel="canonical" href="https://storiesociali.org/">
   <link rel="sitemap" type="application/xml" href="https://storiesociali.org/sitemap.xml">
+  <link rel="alternate" type="text/plain" href="https://storiesociali.org/llms.txt">
   <link rel="alternate" hreflang="it-IT" href="https://storiesociali.org/">
   <link rel="alternate" hreflang="x-default" href="https://storiesociali.org/">
 
@@ -25,6 +26,7 @@
   <link href="https://fonts.cdnfonts.com/css/open-dyslexic" rel="stylesheet">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/assets/logo-storiesociali.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/assets/icon-192.png">
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -127,6 +129,14 @@
           "price": "0",
           "priceCurrency": "EUR"
         },
+        "featureList": [
+          "Wizard guidato in 7 passaggi",
+          "Anteprima live della storia",
+          "Bilanciamento frasi secondo Social Stories",
+          "Stampa e PDF in formato leggibile",
+          "Salvataggio locale senza account"
+        ],
+        "screenshot": "https://storiesociali.org/assets/og-storie-sociali.png",
         "publisher": {
           "@id": "https://storiesociali.org/#organization"
         }
@@ -141,20 +151,44 @@
           {
             "@type": "HowToStep",
             "position": 1,
-            "name": "Imposta protagonista e situazione",
-            "text": "Inserisci nome, età e descrizione della situazione. Il sistema adatta il lessico e suggerisce esempi comuni scolastici."
+            "name": "Scegli il protagonista",
+            "text": "Imposta se la storia è in prima persona o terza persona, aggiungi nome ed età. Il livello lessicale viene adattato alla fascia scelta."
           },
           {
             "@type": "HowToStep",
             "position": 2,
-            "name": "Compila frasi guidate",
-            "text": "Completa dove, quando, chi c'è, prospettiva degli altri, frase direttiva e rinforzo positivo. Il pannello controlla equilibrio tra tipi di frase."
+            "name": "Descrivi la situazione",
+            "text": "Scrivi la situazione da spiegare oppure usa un esempio rapido. Il contenuto guida tutte le frasi successive."
           },
           {
             "@type": "HowToStep",
             "position": 3,
-            "name": "Personalizza e esporta",
-            "text": "Scegli stile, spazio immagini e font. Poi salva in archivio locale, copia testo, stampa o scarica PDF."
+            "name": "Aggiungi cosa succede",
+            "text": "Compila dove, quando, chi c'è e cosa fanno gli altri. Il sistema genera una frase descrittiva chiara."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 4,
+            "name": "Inserisci la prospettiva",
+            "text": "Scrivi come si sentono gli altri in quella situazione. Puoi aggiungere una seconda frase prospettica opzionale."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 5,
+            "name": "Scrivi l'azione del protagonista",
+            "text": "Crea la frase direttiva usando formule gentili come Posso, Proverò a, Potrei. Il controllo lessicale segnala parole da evitare."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 6,
+            "name": "Chiudi con rinforzo positivo",
+            "text": "Seleziona una frase affermativa o scrivine una personalizzata per rafforzare sicurezza e prevedibilità."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 7,
+            "name": "Personalizza ed esporta",
+            "text": "Scegli stile, spazio immagini e font. Poi salva la storia in locale, copia il testo, stampa o scarica PDF."
           }
         ]
       },
@@ -628,6 +662,6 @@
     </footer>
   </div>
 
-  <script src="app.js?v=20260428" defer></script>
+  <script src="app.js?v=20260430" defer></script>
 </body>
 </html>

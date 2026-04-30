@@ -1,7 +1,10 @@
 const STORAGE_KEY = "socialStories_v1";
 const STEP_TOTAL = 7;
 const JSPDF_CDN_URL = "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js";
-const PDF_FONT_URL = "/assets/fonts/lora-regular.ttf";
+const PDF_FONT_URLS = [
+  "/assets/fonts/lora-regular.ttf",
+  "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lora/Lora-Regular.ttf"
+];
 const PDF_FONT_FILENAME = "Lora-Regular.ttf";
 const PDF_FONT_FAMILY = "LoraPDF";
 
@@ -370,6 +373,7 @@ document.addEventListener("DOMContentLoaded", init);
 function init() {
   cacheRefs();
   bindEvents();
+  registerServiceWorker();
   loadStories();
   setStep(1);
   applyFormToUI();
@@ -379,6 +383,18 @@ function init() {
   updatePreviewAndGuidance();
   renderHomeList();
   showHome();
+}
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.error("Registrazione service worker fallita", error);
+    });
+  });
 }
 
 function createDefaultForm() {
@@ -906,13 +922,34 @@ function buildSituationSentence() {
     return "";
   }
 
+  const startsWithConnector = /^(quando|se|mentre)\b/i.test(situation);
+  const containsQuando = /\bquando\b/i.test(situation);
+
   if (state.form.protagonistType === "personal") {
     const name = sanitize(state.form.protagonistName);
     const subject = name ? `io, ${name},` : "io";
+
+    if (startsWithConnector) {
+      return normalizeSentence(`${situation}, ${subject} posso capire meglio cosa succede`, 40);
+    }
+
+    if (containsQuando) {
+      return normalizeSentence(`In questa situazione, ${subject} posso capire meglio cosa succede: ${lowercaseFirst(situation)}`, 40);
+    }
+
     return normalizeSentence(`Quando ${situation}, ${subject} posso capire meglio cosa succede`, 40);
   }
 
   const character = sanitize(state.form.protagonistName) || "il protagonista";
+
+  if (startsWithConnector) {
+    return normalizeSentence(`${situation}, ${character} può capire meglio cosa succede`, 40);
+  }
+
+  if (containsQuando) {
+    return normalizeSentence(`In questa situazione, ${character} può capire meglio cosa succede: ${lowercaseFirst(situation)}`, 40);
+  }
+
   return normalizeSentence(`Quando ${situation}, ${character} può capire meglio cosa succede`, 40);
 }
 
@@ -1018,16 +1055,15 @@ function normalizeSentence(text, maxWordsOverride) {
     return "";
   }
 
-  cleaned = applicaSostituzioni(cleaned).testo;
-  cleaned = cleaned.replace(/[!?;:]/g, " ");
-  cleaned = cleaned.replace(/[.]+/g, " ");
   cleaned = cleaned.replace(/\s+/g, " ").trim();
+  cleaned = cleaned.replace(/^[\s.,;:!?]+/u, "");
 
   const words = cleaned.split(" ").filter(Boolean);
   const maxWords = maxWordsOverride || getSentenceWordLimit();
   const clipped = words.slice(0, maxWords).join(" ");
-  const result = capitalize(clipped);
-  return result.endsWith(".") ? result : `${result}.`;
+  const withoutTrailingPunctuation = clipped.replace(/[.,;:!?]+$/u, "").trim();
+  const result = capitalize(withoutTrailingPunctuation);
+  return result ? `${result}.` : "";
 }
 
 function getSentenceWordLimit() {
@@ -1251,7 +1287,8 @@ function renderBalance(balance, counts) {
 function renderLexicalWarnings() {
   const suggestions = collectLexicalSuggestions();
   if (!suggestions.length) {
-    refs.lexicalWarnings.innerHTML = "<strong>Lessico semplice:</strong> nessuna semplificazione suggerita.";
+    refs.lexicalWarnings.innerHTML =
+      "<strong>Lessico semplice:</strong> nessuna semplificazione suggerita. Il testo resta quello che scrivi.";
     return;
   }
 
@@ -1260,7 +1297,7 @@ function renderLexicalWarnings() {
     .join("<br>");
 
   refs.lexicalWarnings.innerHTML =
-    `<strong>Semplificazioni suggerite:</strong><br>${rows}`;
+    `<strong>Semplificazioni suggerite (non applicate automaticamente):</strong><br>${rows}`;
 }
 
 function collectLexicalSuggestions() {
@@ -1565,17 +1602,26 @@ function loadPdfFontBase64() {
     return pdfFontLoadPromise;
   }
 
-  pdfFontLoadPromise = fetch(PDF_FONT_URL, { cache: "force-cache" })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`Font HTTP ${response.status}`);
+  pdfFontLoadPromise = (async () => {
+    let lastError = null;
+
+    for (const fontUrl of PDF_FONT_URLS) {
+      try {
+        const response = await fetch(fontUrl, { cache: "force-cache" });
+        if (!response.ok) {
+          throw new Error(`Font HTTP ${response.status} (${fontUrl})`);
+        }
+        const buffer = await response.arrayBuffer();
+        pdfFontBase64Cache = arrayBufferToBase64(buffer);
+        return pdfFontBase64Cache;
+      } catch (error) {
+        lastError = error;
+        console.warn("Tentativo caricamento font PDF fallito", fontUrl, error);
       }
-      return response.arrayBuffer();
-    })
-    .then((buffer) => {
-      pdfFontBase64Cache = arrayBufferToBase64(buffer);
-      return pdfFontBase64Cache;
-    })
+    }
+
+    throw lastError || new Error("Nessun font PDF disponibile.");
+  })()
     .finally(() => {
       pdfFontLoadPromise = null;
     });

@@ -1092,14 +1092,40 @@ a:focus-visible {
 }
 
 .theme--contrast {
-  --color-bg: #F2ECE4;
-  --color-surface: #FFFDF9;
-  --color-border: #6B5A46;
-  --color-text-primary: #1A1208;
-  --color-text-secondary: #3A2F22;
-  --story-bg: #FFF;
-  --story-text: #000;
-  --story-accent: #1A1208;
+  --color-bg: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-border: #000000;
+  --color-primary: #000000;
+  --color-primary-light: #D9D9D9;
+  --color-primary-muted: #333333;
+  --color-descriptive: #000000;
+  --color-perspective: #000000;
+  --color-directive: #000000;
+  --color-affirmative: #000000;
+  --color-text-primary: #000000;
+  --color-text-secondary: #111111;
+  --color-text-inverse: #FFFFFF;
+  --story-bg: #FFFFFF;
+  --story-text: #000000;
+  --story-accent: #000000;
+}
+
+.theme--contrast .btn-primary {
+  background: #000000;
+  color: #FFFFFF;
+  box-shadow: none;
+}
+
+.theme--contrast .btn-primary:hover {
+  background: #111111;
+  box-shadow: none;
+}
+
+.theme--contrast .step-dot.step--active {
+  background: #FFFFFF;
+  border-color: #000000;
+  color: #000000;
+  box-shadow: 0 0 0 3px #000000;
 }
 
 .font-dyslexic,
