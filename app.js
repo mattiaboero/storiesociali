@@ -1,6 +1,7 @@
 const STORAGE_KEY = "socialStories_v1";
 const STEP_TOTAL = 7;
 const JSPDF_CDN_URL = "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js";
+const BASE_GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap";
 const PDF_FONT_URLS = [
   "/assets/fonts/lora-regular.ttf",
   "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lora/Lora-Regular.ttf"
@@ -10,8 +11,15 @@ const PDF_FONT_FAMILY = "LoraPDF";
 
 let pdfFontBase64Cache = null;
 let pdfFontLoadPromise = null;
+let baseFontsLoaded = false;
+let baseFontsLoadPromise = null;
 let dyslexicFontLoaded = false;
 let visualStateToken = 0;
+
+const AFFIRMATIVE_PRESET_TEXTS = {
+  preset_retry: "Va bene se non riesco subito. Posso riprovare.",
+  preset_help: "Gli adulti mi possono aiutare."
+};
 
 const AGE_HINTS = {
   "3-5": "Suggerimenti molto semplici: frasi corte, parole concrete, 6-8 parole.",
@@ -375,6 +383,7 @@ document.addEventListener("DOMContentLoaded", init);
 function init() {
   cacheRefs();
   bindEvents();
+  loadBaseFonts();
   registerServiceWorker();
   loadStories();
   setStep(1);
@@ -412,13 +421,33 @@ function createDefaultForm() {
     perspective: "",
     perspectiveExtra: "",
     directive: "",
-    affirmativePreset: "Va bene se non riesco subito. Posso riprovare.",
+    affirmativePreset: "preset_retry",
     affirmativeCustom: "",
     title: "",
     visualStyle: "colorful",
     imageSpace: "none",
     fontChoice: "standard"
   };
+}
+
+function normalizeAffirmativePreset(value) {
+  const raw = sanitize(value);
+  if (!raw) {
+    return "preset_retry";
+  }
+
+  if (raw === "custom" || raw in AFFIRMATIVE_PRESET_TEXTS) {
+    return raw;
+  }
+
+  const lowered = raw.toLowerCase();
+  for (const [presetKey, presetText] of Object.entries(AFFIRMATIVE_PRESET_TEXTS)) {
+    if (lowered === presetText.toLowerCase()) {
+      return presetKey;
+    }
+  }
+
+  return "custom";
 }
 
 function cacheRefs() {
@@ -518,6 +547,10 @@ function onWizardChange(event) {
   const field = valueMap[name];
   if (field) {
     state.form[field] = value;
+  }
+
+  if (name === "affirmativePreset") {
+    state.form.affirmativePreset = normalizeAffirmativePreset(value);
   }
 
   if (name === "ageRange") {
@@ -825,6 +858,70 @@ function updatePreviewAndGuidance() {
   renderLexicalWarnings();
 }
 
+function loadBaseFonts() {
+  if (baseFontsLoaded) {
+    return Promise.resolve();
+  }
+
+  if (baseFontsLoadPromise) {
+    return baseFontsLoadPromise;
+  }
+
+  const existing = document.querySelector("link[data-font='google-base']");
+  if (existing) {
+    baseFontsLoadPromise = new Promise((resolve) => {
+      if (existing.dataset.loaded === "true" || existing.media === "all") {
+        existing.media = "all";
+        baseFontsLoaded = true;
+        resolve();
+        return;
+      }
+
+      existing.addEventListener("load", () => {
+        existing.media = "all";
+        existing.dataset.loaded = "true";
+        baseFontsLoaded = true;
+        resolve();
+      }, { once: true });
+
+      existing.addEventListener("error", () => {
+        resolve();
+      }, { once: true });
+
+      window.setTimeout(() => {
+        existing.media = "all";
+      }, 1200);
+    });
+    return baseFontsLoadPromise;
+  }
+
+  baseFontsLoadPromise = new Promise((resolve) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = BASE_GOOGLE_FONTS_URL;
+    link.media = "print";
+    link.dataset.font = "google-base";
+    link.onload = () => {
+      link.media = "all";
+      link.dataset.loaded = "true";
+      baseFontsLoaded = true;
+      resolve();
+    };
+    link.onerror = () => {
+      resolve();
+    };
+    document.head.appendChild(link);
+
+    window.setTimeout(() => {
+      if (link.media !== "all") {
+        link.media = "all";
+      }
+    }, 1200);
+  });
+
+  return baseFontsLoadPromise;
+}
+
 function loadDyslexicFont() {
   if (dyslexicFontLoaded) {
     return Promise.resolve();
@@ -1106,7 +1203,7 @@ function buildAffirmativeSentence() {
   if (state.form.affirmativePreset === "custom") {
     source = sanitize(state.form.affirmativeCustom);
   } else {
-    source = sanitize(state.form.affirmativePreset);
+    source = sanitize(AFFIRMATIVE_PRESET_TEXTS[state.form.affirmativePreset]);
   }
 
   if (!source) {
@@ -1488,11 +1585,11 @@ function openStory(storyId) {
   }
 
   state.activeStoryId = story.id;
-  state.form = {
+  state.form = normalizeLoadedForm({
     ...createDefaultForm(),
     ...story.steps,
     title: story.title || story.steps.title || ""
-  };
+  });
 
   applyFormToUI();
   setStep(1);
@@ -1891,12 +1988,12 @@ function loadStories() {
 
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      state.stories = parsed;
+      state.stories = parsed.map(normalizeStoryRecord);
       return;
     }
 
     if (parsed && Array.isArray(parsed.stories)) {
-      state.stories = parsed.stories;
+      state.stories = parsed.stories.map(normalizeStoryRecord);
       return;
     }
 
@@ -1905,6 +2002,36 @@ function loadStories() {
     console.error("Errore lettura localStorage", error);
     state.stories = [];
   }
+}
+
+function normalizeLoadedForm(form) {
+  const rawPreset = sanitize(form.affirmativePreset);
+  const normalizedPreset = normalizeAffirmativePreset(rawPreset);
+  const normalizedCustom = sanitize(form.affirmativeCustom);
+
+  const preserveLegacyCustom = normalizedPreset === "custom" && !normalizedCustom && rawPreset && rawPreset !== "custom";
+
+  return {
+    ...form,
+    affirmativePreset: normalizedPreset,
+    affirmativeCustom: preserveLegacyCustom ? rawPreset : normalizedCustom
+  };
+}
+
+function normalizeStoryRecord(story) {
+  if (!story || typeof story !== "object") {
+    return story;
+  }
+
+  const normalizedSteps = normalizeLoadedForm({
+    ...createDefaultForm(),
+    ...(story.steps || {})
+  });
+
+  return {
+    ...story,
+    steps: normalizedSteps
+  };
 }
 
 function persistStories() {
