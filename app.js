@@ -529,6 +529,9 @@ function cacheRefs() {
   refs.archiveSection = document.getElementById("archiveSection");
   refs.homeShell = document.querySelector(".home-shell");
   refs.storiesCount = document.getElementById("storiesCount");
+  refs.exportStoriesBtn = document.getElementById("exportStoriesBtn");
+  refs.importStoriesBtn = document.getElementById("importStoriesBtn");
+  refs.importStoriesInput = document.getElementById("importStoriesInput");
   refs.guideToggleBtn = document.getElementById("guideToggleBtn");
   refs.seoArticle = document.getElementById("seo-article-main");
   refs.stepIndicator = document.getElementById("stepIndicator");
@@ -600,6 +603,18 @@ function bindEvents() {
   if (refs.mobilePreviewBtn) {
     refs.mobilePreviewBtn.addEventListener("click", focusPreviewPanel);
   }
+  if (refs.exportStoriesBtn) {
+    refs.exportStoriesBtn.addEventListener("click", exportStoriesJson);
+  }
+  if (refs.importStoriesBtn && refs.importStoriesInput) {
+    refs.importStoriesBtn.addEventListener("click", () => {
+      refs.importStoriesInput.click();
+    });
+  }
+  if (refs.importStoriesInput) {
+    refs.importStoriesInput.addEventListener("change", onImportStoriesSelected);
+  }
+  window.addEventListener("resize", onViewportResize);
   window.addEventListener("beforeunload", onBeforeUnload);
 }
 
@@ -707,6 +722,7 @@ async function onStoryExampleCtaClick(event) {
 }
 
 function showHome() {
+  setMobilePreviewMode(false);
   refs.homeScreen.classList.add("active");
   refs.editorScreen.classList.remove("active");
   refs.appFooter.classList.add("hidden");
@@ -715,6 +731,7 @@ function showHome() {
 }
 
 function showEditor() {
+  setMobilePreviewMode(false);
   refs.homeScreen.classList.remove("active");
   refs.editorScreen.classList.add("active");
   refs.appFooter.classList.remove("hidden");
@@ -770,7 +787,36 @@ function focusPreviewPanel() {
   if (!refs.storyPreview) {
     return;
   }
+  if (isMobileViewport()) {
+    const isOpen = refs.editorScreen.classList.contains("editor-screen--mobile-preview");
+    setMobilePreviewMode(!isOpen);
+    if (!isOpen) {
+      refs.storyPreview.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    return;
+  }
   refs.storyPreview.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function isMobileViewport() {
+  return window.matchMedia("(max-width: 900px)").matches;
+}
+
+function setMobilePreviewMode(enabled) {
+  if (!refs.editorScreen || !refs.mobilePreviewBtn) {
+    return;
+  }
+
+  const active = Boolean(enabled) && isMobileViewport();
+  refs.editorScreen.classList.toggle("editor-screen--mobile-preview", active);
+  refs.mobilePreviewBtn.textContent = active ? "Torna al wizard" : "Anteprima";
+  refs.mobilePreviewBtn.setAttribute("aria-pressed", active ? "true" : "false");
+}
+
+function onViewportResize() {
+  if (!isMobileViewport()) {
+    setMobilePreviewMode(false);
+  }
 }
 
 function onBeforeUnload(event) {
@@ -1868,6 +1914,9 @@ function renderHomeList() {
 
   refs.storiesList.innerHTML = "";
   refs.emptyState.style.display = sorted.length ? "none" : "block";
+  if (refs.exportStoriesBtn) {
+    refs.exportStoriesBtn.disabled = sorted.length === 0;
+  }
 
   sorted.forEach((story) => {
     const card = document.createElement("article");
@@ -2258,6 +2307,102 @@ function duplicateStory(storyId) {
   persistStories();
   renderHomeList();
   showToast("Storia duplicata.", "success");
+}
+
+function exportStoriesJson() {
+  if (!state.stories.length) {
+    showToast("Nessuna storia da esportare.", "error");
+    return;
+  }
+
+  const payload = {
+    version: 1,
+    source: "storiesociali.org",
+    exportedAt: new Date().toISOString(),
+    stories: state.stories
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  const dateTag = new Date().toISOString().slice(0, 10);
+  anchor.href = url;
+  anchor.download = `storiesociali-backup-${dateTag}.json`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+  showToast("Backup JSON esportato.", "success");
+}
+
+async function onImportStoriesSelected(event) {
+  const input = event.target;
+  const file = input && input.files ? input.files[0] : null;
+  if (!file) {
+    return;
+  }
+
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const importedStoriesRaw = extractStoriesFromImport(parsed);
+
+    if (!Array.isArray(importedStoriesRaw) || !importedStoriesRaw.length) {
+      throw new Error("Archivio vuoto o formato non valido.");
+    }
+
+    const existingById = new Map(state.stories.map((story) => [story.id, story]));
+    let importedCount = 0;
+    let updatedCount = 0;
+
+    importedStoriesRaw.forEach((rawStory) => {
+      if (!rawStory || typeof rawStory !== "object") {
+        return;
+      }
+
+      const normalized = normalizeStoryRecord(rawStory);
+      let storyId = sanitize(normalized.id);
+      if (!storyId) {
+        storyId = makeId();
+      }
+
+      const record = {
+        ...normalized,
+        id: storyId,
+        createdAt: normalized.createdAt || new Date().toISOString(),
+        updatedAt: normalized.updatedAt || normalized.createdAt || new Date().toISOString()
+      };
+
+      if (existingById.has(storyId)) {
+        updatedCount += 1;
+      } else {
+        importedCount += 1;
+      }
+      existingById.set(storyId, record);
+    });
+
+    state.stories = Array.from(existingById.values());
+    persistStories();
+    renderHomeList();
+
+    const total = importedCount + updatedCount;
+    showToast(`Import completato: ${total} storie (${importedCount} nuove, ${updatedCount} aggiornate).`, "success");
+  } catch (error) {
+    console.error("Import JSON fallito", error);
+    showToast("Import non riuscito: verifica che il file JSON sia valido.", "error");
+  } finally {
+    input.value = "";
+  }
+}
+
+function extractStoriesFromImport(parsed) {
+  if (Array.isArray(parsed)) {
+    return parsed;
+  }
+  if (parsed && Array.isArray(parsed.stories)) {
+    return parsed.stories;
+  }
+  return [];
 }
 
 function announceStepChange() {

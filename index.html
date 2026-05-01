@@ -690,6 +690,11 @@
               <h2>Storie salvate</h2>
               <span id="storiesCount" class="stories-count" aria-live="polite"></span>
             </div>
+            <div class="archive-tools" aria-label="Backup archivio">
+              <button id="exportStoriesBtn" class="btn btn-secondary" type="button">Esporta JSON</button>
+              <button id="importStoriesBtn" class="btn btn-secondary" type="button">Importa JSON</button>
+              <input id="importStoriesInput" class="sr-only" type="file" accept="application/json,.json">
+            </div>
             <p id="emptyState" class="empty-state">
               Nessuna storia salvata.<br>
               <span class="empty-state-hint">Crea la tua prima storia sociale in circa 10 minuti con il wizard guidato. Resta salvata in questo browser.</span>
@@ -992,6 +997,6 @@
     </footer>
   </div>
 
-  <script src="app.js?v=20260430b" defer></script>
+  <script src="app.js?v=20260501a" defer></script>
 </body>
 </html>
