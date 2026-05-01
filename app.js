@@ -614,7 +614,7 @@ function bindEvents() {
   if (refs.importStoriesInput) {
     refs.importStoriesInput.addEventListener("change", onImportStoriesSelected);
   }
-  window.addEventListener("resize", onViewportResize);
+  window.addEventListener("resize", debounce(onViewportResize, 150));
   window.addEventListener("beforeunload", onBeforeUnload);
 }
 
@@ -2546,6 +2546,18 @@ function makeId() {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function debounce(fn, delay) {
+  let timer = null;
+  return function debounced(...args) {
+    if (timer) {
+      window.clearTimeout(timer);
+    }
+    timer = window.setTimeout(() => {
+      fn.apply(this, args);
+    }, delay);
+  };
 }
 
 function formatDate(isoString) {
