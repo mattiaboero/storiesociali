@@ -55,6 +55,24 @@
   --footer-h: 72px;
 }
 
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('/assets/fonts/open-dyslexic-regular.woff2') format('woff2'),
+       url('/assets/fonts/open-dyslexic-regular.woff') format('woff');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('/assets/fonts/open-dyslexic-bold.woff2') format('woff2'),
+       url('/assets/fonts/open-dyslexic-bold.woff') format('woff');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -154,6 +172,32 @@ body {
   font-weight: 600;
   color: var(--color-text-primary);
   letter-spacing: -0.02em;
+}
+
+.app-logo--btn {
+  background: transparent;
+  border: 0;
+  padding: 0.25rem 0.4rem;
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  cursor: pointer;
+  border-radius: 6px;
+  text-align: left;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.app-logo--btn:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.app-logo--btn:active {
+  transform: scale(0.98);
+}
+
+.app-logo--btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .app-logo span {
@@ -535,6 +579,10 @@ body {
 .step-dot {
   width: 32px;
   height: 32px;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -547,6 +595,8 @@ body {
   background: var(--color-surface);
   border: 2px solid var(--color-border);
   color: var(--color-text-secondary);
+  cursor: pointer;
+  line-height: 1;
 }
 
 .step-check {
@@ -1501,13 +1551,21 @@ a:focus-visible {
 }
 
 @media (max-width: 900px) {
-  :root {
-    --footer-h: 124px;
-  }
-
   .main-panels {
     grid-template-columns: 1fr;
-    height: calc(100vh - var(--header-h) - var(--footer-h));
+    min-height: 0;
+    height: auto;
+  }
+
+  #editorScreen.active {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  #editorScreen.active > .main-panels {
+    flex: 1 1 auto;
+    overflow-y: auto;
   }
 
   .preview-panel {
@@ -1605,13 +1663,27 @@ a:focus-visible {
   .wizard-panel,
   .app-footer,
   .preview-header,
-  .step-indicator,
-  #homeScreen {
+  .step-indicator {
     display: none !important;
   }
 
-  #editorScreen {
+  #editorScreen.active {
     display: block !important;
+  }
+
+  #editorScreen:not(.active) {
+    display: none !important;
+  }
+
+  #homeScreen.active {
+    display: block !important;
+  }
+
+  #homeScreen.active .home-header--hero button,
+  #homeScreen.active .archive-section,
+  #homeScreen.active .trust-footer,
+  #homeScreen.active .guide-toggle {
+    display: none !important;
   }
 
   .main-panels {

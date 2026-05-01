@@ -1,5 +1,7 @@
 const STORAGE_KEY = "socialStories_v1";
+const DRAFT_KEY = "socialStories_draft_v1";
 const STEP_TOTAL = 7;
+const AUTOSAVE_DEBOUNCE_MS = 1500;
 const JSPDF_CDN_URL = "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js";
 const BASE_GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap";
 const PDF_FONT_URLS = [
@@ -8,6 +10,28 @@ const PDF_FONT_URLS = [
 ];
 const PDF_FONT_FILENAME = "Lora-Regular.ttf";
 const PDF_FONT_FAMILY = "LoraPDF";
+const PDF_LAYOUT = {
+  marginTop: 54,
+  marginLeft: 46,
+  maxY: 790,
+  newPageY: 56,
+  titleFontSize: 19,
+  bodyFontSize: 12,
+  lineHeight: 16,
+  titleSpacingAfter: 28,
+  metaSpacingAfter: 20,
+  largeImageNeedHeight: 118,
+  largeImageBoxWidth: 505,
+  largeImageBoxHeight: 72,
+  largeImageBlockHeight: 84,
+  smallImageNeedHeightMin: 58,
+  smallImageBoxWidth: 90,
+  smallImageBoxHeight: 48,
+  smallImageOffset: 105,
+  smallImageContentWidth: 395,
+  contentWidthFull: 505,
+  paragraphSpacing: 6
+};
 
 let pdfFontBase64Cache = null;
 let pdfFontLoadPromise = null;
@@ -15,7 +39,12 @@ let pdfFontFailed = false;
 let baseFontsLoaded = false;
 let baseFontsLoadPromise = null;
 let dyslexicFontLoaded = false;
-let visualStateToken = 0;
+const debouncedWizardTextRefresh = debounce(() => {
+  runWizardUiRefresh();
+}, 150);
+const debouncedAutosave = debounce(() => {
+  persistDraft();
+}, AUTOSAVE_DEBOUNCE_MS);
 
 const AFFIRMATIVE_PRESET_TEXTS = {
   preset_retry: "Va bene se non riesco subito. Posso riprovare.",
@@ -463,6 +492,7 @@ function init() {
   updatePreviewAndGuidance();
   renderHomeList();
   showHome();
+  void recoverDraftIfPresent();
 }
 
 function registerServiceWorker() {
@@ -524,6 +554,7 @@ function cacheRefs() {
   refs.editorScreen = document.getElementById("editorScreen");
   refs.newStoryBtn = document.getElementById("newStoryBtn");
   refs.backHomeBtn = document.getElementById("backHomeBtn");
+  refs.appLogoBtn = document.getElementById("appLogoBtn");
   refs.storiesList = document.getElementById("storiesList");
   refs.emptyState = document.getElementById("emptyState");
   refs.archiveSection = document.getElementById("archiveSection");
@@ -567,8 +598,13 @@ function bindEvents() {
     void startNewStory();
   });
   refs.backHomeBtn.addEventListener("click", () => {
-    showHome();
+    void goHome();
   });
+  if (refs.appLogoBtn) {
+    refs.appLogoBtn.addEventListener("click", () => {
+      void goHome();
+    });
+  }
 
   refs.prevStepBtn.addEventListener("click", () => setStep(state.step - 1));
   refs.nextStepBtn.addEventListener("click", () => setStep(state.step + 1));
@@ -582,7 +618,12 @@ function bindEvents() {
     if (!event.target.matches("input[type=\"text\"], textarea")) {
       return;
     }
-    onWizardChange(event);
+    const { name, value } = event.target;
+    if (!name) {
+      return;
+    }
+    applyWizardStateUpdate(name, value);
+    debouncedWizardTextRefresh();
   });
 
   refs.wizardForm.addEventListener("change", (event) => {
@@ -597,6 +638,7 @@ function bindEvents() {
 
   refs.storiesList.addEventListener("click", onStoryCardAction);
   refs.homeScreen.addEventListener("click", onStoryExampleCtaClick);
+  refs.stepIndicator.addEventListener("click", onStepDotClick);
   if (refs.guideToggleBtn) {
     refs.guideToggleBtn.addEventListener("click", toggleGuide);
   }
@@ -624,6 +666,11 @@ function onWizardChange(event) {
     return;
   }
 
+  applyWizardStateUpdate(name, value);
+  runWizardUiRefresh();
+}
+
+function applyWizardStateUpdate(name, value) {
   const field = WIZARD_FIELD_MAP[name];
   if (field) {
     state.form[field] = value;
@@ -639,12 +686,15 @@ function onWizardChange(event) {
   if (name === "ageRange") {
     updateAgeHint();
   }
+}
 
+function runWizardUiRefresh() {
   syncSelectionStates();
   updateDescriptivePreview();
   updateSituationComplexPreview();
   updateDirectiveWarning();
   updatePreviewAndGuidance();
+  debouncedAutosave();
 }
 
 function onSituationExampleClick(event) {
@@ -663,7 +713,7 @@ function onSituationExampleClick(event) {
   state.isDirty = true;
 
   applyFormToUI();
-  updatePreviewAndGuidance();
+  runWizardUiRefresh();
 }
 
 function onPerspectiveExampleClick(event) {
@@ -680,7 +730,7 @@ function onPerspectiveExampleClick(event) {
   state.isDirty = true;
 
   applyFormToUI();
-  updatePreviewAndGuidance();
+  runWizardUiRefresh();
 }
 
 function onStoryCardAction(event) {
@@ -721,6 +771,18 @@ async function onStoryExampleCtaClick(event) {
   await startNewStoryWithPreset(presetName);
 }
 
+function onStepDotClick(event) {
+  const dot = event.target.closest("[data-step-dot]");
+  if (!dot) {
+    return;
+  }
+  const targetStep = Number(dot.dataset.stepDot);
+  if (!Number.isFinite(targetStep) || targetStep < 1 || targetStep > STEP_TOTAL) {
+    return;
+  }
+  setStep(targetStep);
+}
+
 function showHome() {
   setMobilePreviewMode(false);
   refs.homeScreen.classList.add("active");
@@ -736,6 +798,20 @@ function showEditor() {
   refs.editorScreen.classList.add("active");
   refs.appFooter.classList.remove("hidden");
   updateStepIndicator();
+}
+
+async function goHome() {
+  if (!refs.editorScreen.classList.contains("active")) {
+    showHome();
+    return;
+  }
+  const canDiscard = await confirmDiscardIfDirty();
+  if (!canDiscard) {
+    return;
+  }
+  state.isDirty = false;
+  clearDraft();
+  showHome();
 }
 
 function toggleGuide() {
@@ -910,9 +986,13 @@ async function startNewStory(options = {}) {
   const presetApplied = applySituationPreset(presetName, false);
   state.step = presetApplied ? 2 : 1;
   state.isDirty = presetApplied;
+  clearDraft();
   applyFormToUI();
   setStep(state.step);
   updatePreviewAndGuidance();
+  if (state.isDirty) {
+    persistDraft();
+  }
   showEditor();
   return true;
 }
@@ -1020,9 +1100,7 @@ function updateStepIndicator() {
 function updateAffirmativeCustomState() {
   const customSelected = state.form.affirmativePreset === "custom";
   refs.affirmativeCustom.disabled = !customSelected;
-  if (!customSelected) {
-    refs.affirmativeCustom.value = state.form.affirmativeCustom || "";
-  }
+  refs.affirmativeCustom.value = state.form.affirmativeCustom || "";
 }
 
 function updateAgeHint() {
@@ -1175,42 +1253,12 @@ function loadDyslexicFont() {
   if (dyslexicFontLoaded) {
     return Promise.resolve();
   }
-
-  const existing = document.querySelector("link[data-font='open-dyslexic']");
-  if (existing) {
-    return new Promise((resolve, reject) => {
-      if (existing.dataset.loaded === "true") {
-        dyslexicFontLoaded = true;
-        resolve();
-        return;
-      }
-      existing.addEventListener("load", () => {
-        existing.dataset.loaded = "true";
-        dyslexicFontLoaded = true;
-        resolve();
-      }, { once: true });
-      existing.addEventListener("error", () => reject(new Error("Font OpenDyslexic non caricato")), { once: true });
-    });
-  }
-
-  return new Promise((resolve, reject) => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://fonts.cdnfonts.com/css/open-dyslexic";
-    link.dataset.font = "open-dyslexic";
-    link.onload = () => {
-      link.dataset.loaded = "true";
-      dyslexicFontLoaded = true;
-      resolve();
-    };
-    link.onerror = () => reject(new Error("Font OpenDyslexic non disponibile"));
-    document.head.appendChild(link);
-  });
+  dyslexicFontLoaded = true;
+  return Promise.resolve();
 }
 
 function applyVisualSettings() {
   const body = document.body;
-  const token = ++visualStateToken;
 
   body.classList.remove("theme--minimal", "theme--colorful", "theme--contrast");
   body.classList.remove("font-standard", "font-dyslexic", "font-uppercase");
@@ -1223,19 +1271,8 @@ function applyVisualSettings() {
 
   body.classList.add(themeMap[state.form.visualStyle] || "theme--colorful");
   if (state.form.fontChoice === "dyslexic") {
-    loadDyslexicFont()
-      .then(() => {
-        if (token !== visualStateToken || state.form.fontChoice !== "dyslexic") {
-          return;
-        }
-        body.classList.add("font-dyslexic");
-      })
-      .catch(() => {
-        if (token !== visualStateToken || state.form.fontChoice !== "dyslexic") {
-          return;
-        }
-        body.classList.add("font-dyslexic");
-      });
+    loadDyslexicFont();
+    body.classList.add("font-dyslexic");
   } else {
     body.classList.add(`font-${state.form.fontChoice}`);
   }
@@ -1588,24 +1625,47 @@ function getWordBoundaryPattern(word) {
 
 function applicaSostituzioni(testo, replacements = SOSTITUZIONI_ORDINATE) {
   let risultato = String(testo || "");
+  if (!risultato.trim()) {
+    return { testo: risultato, applicate: [] };
+  }
+
+  let lower = risultato.toLowerCase();
   const applicate = [];
 
   for (const { da, a } of replacements) {
+    const firstToken = da.toLowerCase().split(/\s+/)[0];
+    if (!lower.includes(firstToken)) {
+      continue;
+    }
     const pattern = getReplacementPattern(da);
-    risultato = risultato.replace(pattern, (full, prefix, match) => {
+    const nuovoRisultato = risultato.replace(pattern, (full, prefix, match) => {
       const sostituito = preserveMatchCase(match, a);
       applicate.push({ originale: match, sostituito });
       return `${prefix}${sostituito}`;
     });
+    if (nuovoRisultato !== risultato) {
+      risultato = nuovoRisultato;
+      lower = risultato.toLowerCase();
+    }
   }
 
   return { testo: risultato, applicate };
 }
 
 function evidenziaParoleComplesse(testo, replacements = SOSTITUZIONI_ORDINATE) {
-  let html = escapeHtml(String(testo || ""));
+  const sourceText = String(testo || "");
+  if (!sourceText.trim()) {
+    return escapeHtml(sourceText);
+  }
+
+  const lower = sourceText.toLowerCase();
+  let html = escapeHtml(sourceText);
 
   for (const { da } of replacements) {
+    const firstToken = da.toLowerCase().split(/\s+/)[0];
+    if (!lower.includes(firstToken)) {
+      continue;
+    }
     const pattern = getHighlightPattern(da);
 
     html = html.replace(
@@ -1847,6 +1907,7 @@ function saveCurrentStory() {
   state.activeStoryId = id;
   state.isDirty = false;
   persistStories();
+  clearDraft();
   renderHomeList();
   applyFormToUI();
 
@@ -1873,6 +1934,7 @@ async function openStory(storyId) {
     title: story.title || story.steps.title || ""
   });
   state.isDirty = false;
+  clearDraft();
 
   applyFormToUI();
   setStep(1);
@@ -1896,6 +1958,7 @@ async function deleteStory(storyId) {
     state.activeStoryId = null;
     state.form = createDefaultForm();
     state.isDirty = false;
+    clearDraft();
     applyFormToUI();
     updatePreviewAndGuidance();
   }
@@ -1912,70 +1975,75 @@ function renderHomeList() {
     return right.localeCompare(left);
   });
 
-  refs.storiesList.innerHTML = "";
   refs.emptyState.style.display = sorted.length ? "none" : "block";
   if (refs.exportStoriesBtn) {
     refs.exportStoriesBtn.disabled = sorted.length === 0;
   }
 
+  const fragment = document.createDocumentFragment();
   sorted.forEach((story) => {
-    const card = document.createElement("article");
-    card.className = "story-card";
-    if (story.id === state.activeStoryId) {
-      card.classList.add("story-card--active");
-    }
-
-    const title = document.createElement("h3");
-    title.textContent = story.title || "Storia senza titolo";
-
-    const date = document.createElement("p");
-    date.className = "story-date";
-    date.textContent = formatDate(story.updatedAt || story.createdAt);
-
-    const snippet = document.createElement("p");
-    snippet.className = "story-snippet";
-    snippet.textContent = clipText(story.text || "", 120);
-
-    const actions = document.createElement("div");
-    actions.className = "story-actions";
-
-    const openBtn = document.createElement("button");
-    openBtn.className = "btn";
-    openBtn.type = "button";
-    openBtn.dataset.action = "open";
-    openBtn.dataset.id = story.id;
-    openBtn.textContent = "Apri";
-    openBtn.setAttribute("aria-label", `Apri \"${story.title || "storia senza titolo"}\"`);
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.className = "btn";
-    deleteBtn.type = "button";
-    deleteBtn.dataset.action = "delete";
-    deleteBtn.dataset.id = story.id;
-    deleteBtn.textContent = "Elimina";
-    deleteBtn.setAttribute("aria-label", `Elimina \"${story.title || "storia senza titolo"}\"`);
-
-    const duplicateBtn = document.createElement("button");
-    duplicateBtn.className = "btn";
-    duplicateBtn.type = "button";
-    duplicateBtn.dataset.action = "duplicate";
-    duplicateBtn.dataset.id = story.id;
-    duplicateBtn.textContent = "Duplica";
-    duplicateBtn.setAttribute("aria-label", `Duplica \"${story.title || "storia senza titolo"}\"`);
-
-    actions.appendChild(openBtn);
-    actions.appendChild(duplicateBtn);
-    actions.appendChild(deleteBtn);
-
-    card.appendChild(title);
-    card.appendChild(date);
-    card.appendChild(snippet);
-    card.appendChild(actions);
-
-    refs.storiesList.appendChild(card);
+    fragment.appendChild(buildStoryCard(story));
   });
+  refs.storiesList.replaceChildren(fragment);
 
   updateHomeLayout();
+}
+
+function buildStoryCard(story) {
+  const card = document.createElement("article");
+  card.className = "story-card";
+  if (story.id === state.activeStoryId) {
+    card.classList.add("story-card--active");
+  }
+
+  const title = document.createElement("h3");
+  title.textContent = story.title || "Storia senza titolo";
+
+  const date = document.createElement("p");
+  date.className = "story-date";
+  date.textContent = formatDate(story.updatedAt || story.createdAt);
+
+  const snippet = document.createElement("p");
+  snippet.className = "story-snippet";
+  snippet.textContent = clipText(story.text || "", 120);
+
+  const actions = document.createElement("div");
+  actions.className = "story-actions";
+
+  const openBtn = document.createElement("button");
+  openBtn.className = "btn";
+  openBtn.type = "button";
+  openBtn.dataset.action = "open";
+  openBtn.dataset.id = story.id;
+  openBtn.textContent = "Apri";
+  openBtn.setAttribute("aria-label", `Apri \"${story.title || "storia senza titolo"}\"`);
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.className = "btn";
+  deleteBtn.type = "button";
+  deleteBtn.dataset.action = "delete";
+  deleteBtn.dataset.id = story.id;
+  deleteBtn.textContent = "Elimina";
+  deleteBtn.setAttribute("aria-label", `Elimina \"${story.title || "storia senza titolo"}\"`);
+
+  const duplicateBtn = document.createElement("button");
+  duplicateBtn.className = "btn";
+  duplicateBtn.type = "button";
+  duplicateBtn.dataset.action = "duplicate";
+  duplicateBtn.dataset.id = story.id;
+  duplicateBtn.textContent = "Duplica";
+  duplicateBtn.setAttribute("aria-label", `Duplica \"${story.title || "storia senza titolo"}\"`);
+
+  actions.appendChild(openBtn);
+  actions.appendChild(duplicateBtn);
+  actions.appendChild(deleteBtn);
+
+  card.appendChild(title);
+  card.appendChild(date);
+  card.appendChild(snippet);
+  card.appendChild(actions);
+
+  return card;
 }
 
 function copyStoryText() {
@@ -2135,73 +2203,85 @@ async function exportPDF() {
     return;
   }
 
-  const loaded = await ensureJsPdfLoaded();
-  if (!loaded || !window.jspdf || !window.jspdf.jsPDF) {
-    showToast("jsPDF non disponibile. Controlla connessione internet.", "error");
-    return;
-  }
+  const originalLabel = refs.pdfBtn.textContent;
+  refs.pdfBtn.disabled = true;
+  refs.pdfBtn.textContent = "Generazione PDF…";
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const unicodeFontReady = await ensurePdfUnicodeFont(doc);
+  try {
+    const loaded = await ensureJsPdfLoaded();
+    if (!loaded || !window.jspdf || !window.jspdf.jsPDF) {
+      showToast("jsPDF non disponibile. Controlla connessione internet.", "error");
+      return;
+    }
 
-  let y = 54;
-  const marginLeft = 46;
-  const maxY = 790;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const unicodeFontReady = await ensurePdfUnicodeFont(doc);
 
-  if (!unicodeFontReady) {
-    doc.setFont("helvetica", "normal");
-    showToast("PDF con font base: alcuni accenti potrebbero non vedersi bene.", "warning");
-  }
+    let y = PDF_LAYOUT.marginTop;
+    const marginLeft = PDF_LAYOUT.marginLeft;
+    const maxY = PDF_LAYOUT.maxY;
 
-  doc.setFontSize(19);
-  doc.text(story.title, marginLeft, y);
-  y += 28;
+    if (!unicodeFontReady) {
+      doc.setFont("helvetica", "normal");
+      showToast("PDF con font base: alcuni accenti potrebbero non vedersi bene.", "warning");
+    }
 
-  doc.setFontSize(12);
-  doc.text(
-    `Descrittive ${story.counts.descriptive} | Prospettiche ${story.counts.perspective} | Direttive ${story.counts.directive} | Affermative ${story.counts.affirmative}`,
-    marginLeft,
-    y
-  );
-  y += 20;
+    doc.setFontSize(PDF_LAYOUT.titleFontSize);
+    doc.text(story.title, marginLeft, y);
+    y += PDF_LAYOUT.titleSpacingAfter;
 
-  for (let i = 0; i < story.sentences.length; i += 1) {
-    const sentence = story.sentences[i];
-    const line = `${i + 1}. ${sentenceTypeLabel(sentence.type)}: ${sentence.text}`;
+    doc.setFontSize(PDF_LAYOUT.bodyFontSize);
+    doc.text(
+      `Descrittive ${story.counts.descriptive} | Prospettiche ${story.counts.perspective} | Direttive ${story.counts.directive} | Affermative ${story.counts.affirmative}`,
+      marginLeft,
+      y
+    );
+    y += PDF_LAYOUT.metaSpacingAfter;
 
-    if (state.form.imageSpace === "large") {
-      y = ensurePage(doc, y, 118, maxY);
-      doc.setDrawColor(153);
-      doc.rect(marginLeft, y, 505, 72);
-      y += 84;
-      const lines = doc.splitTextToSize(line, 505);
-      y = ensurePage(doc, y, lines.length * 16 + 12, maxY);
+    for (let i = 0; i < story.sentences.length; i += 1) {
+      const sentence = story.sentences[i];
+      const line = `${i + 1}. ${sentenceTypeLabel(sentence.type)}: ${sentence.text}`;
+
+      if (state.form.imageSpace === "large") {
+        y = ensurePage(doc, y, PDF_LAYOUT.largeImageNeedHeight, maxY);
+        doc.setDrawColor(153);
+        doc.rect(marginLeft, y, PDF_LAYOUT.largeImageBoxWidth, PDF_LAYOUT.largeImageBoxHeight);
+        y += PDF_LAYOUT.largeImageBlockHeight;
+        const lines = doc.splitTextToSize(line, PDF_LAYOUT.contentWidthFull);
+        y = ensurePage(doc, y, lines.length * PDF_LAYOUT.lineHeight + PDF_LAYOUT.bodyFontSize, maxY);
+        doc.text(lines, marginLeft, y);
+        y += lines.length * PDF_LAYOUT.lineHeight + 8;
+        continue;
+      }
+
+      if (state.form.imageSpace === "small") {
+        const lines = doc.splitTextToSize(line, PDF_LAYOUT.smallImageContentWidth);
+        const blockHeight = Math.max(
+          lines.length * PDF_LAYOUT.lineHeight + 10,
+          PDF_LAYOUT.smallImageNeedHeightMin
+        );
+        y = ensurePage(doc, y, blockHeight, maxY);
+        doc.setDrawColor(153);
+        doc.rect(marginLeft, y - 10, PDF_LAYOUT.smallImageBoxWidth, PDF_LAYOUT.smallImageBoxHeight);
+        doc.text(lines, marginLeft + PDF_LAYOUT.smallImageOffset, y + 2);
+        y += blockHeight;
+        continue;
+      }
+
+      const lines = doc.splitTextToSize(line, PDF_LAYOUT.contentWidthFull);
+      y = ensurePage(doc, y, lines.length * PDF_LAYOUT.lineHeight + 8, maxY);
       doc.text(lines, marginLeft, y);
-      y += lines.length * 16 + 8;
-      continue;
+      y += lines.length * PDF_LAYOUT.lineHeight + PDF_LAYOUT.paragraphSpacing;
     }
 
-    if (state.form.imageSpace === "small") {
-      const lines = doc.splitTextToSize(line, 395);
-      const blockHeight = Math.max(lines.length * 16 + 10, 58);
-      y = ensurePage(doc, y, blockHeight, maxY);
-      doc.setDrawColor(153);
-      doc.rect(marginLeft, y - 10, 90, 48);
-      doc.text(lines, marginLeft + 105, y + 2);
-      y += blockHeight;
-      continue;
-    }
-
-    const lines = doc.splitTextToSize(line, 505);
-    y = ensurePage(doc, y, lines.length * 16 + 8, maxY);
-    doc.text(lines, marginLeft, y);
-    y += lines.length * 16 + 6;
+    const filename = `${slugify(story.title || "storia-sociale")}.pdf`;
+    doc.save(filename);
+    showToast("PDF generato.", "success");
+  } finally {
+    refs.pdfBtn.disabled = false;
+    refs.pdfBtn.textContent = originalLabel;
   }
-
-  const filename = `${slugify(story.title || "storia-sociale")}.pdf`;
-  doc.save(filename);
-  showToast("PDF generato.", "success");
 }
 
 function getToastContainer() {
@@ -2412,12 +2492,12 @@ function announceStepChange() {
   refs.stepAnnouncer.textContent = `Passo ${state.step} di ${STEP_TOTAL}`;
 }
 
-function ensurePage(doc, y, needHeight, maxY) {
+function ensurePage(doc, y, needHeight, maxY, newPageY = PDF_LAYOUT.newPageY) {
   if (y + needHeight <= maxY) {
     return y;
   }
   doc.addPage();
-  return 56;
+  return newPageY;
 }
 
 function loadStories() {
@@ -2481,6 +2561,89 @@ function persistStories() {
     stories: state.stories
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+function persistDraft() {
+  if (!state.isDirty || !hasStoryDraftContent()) {
+    return;
+  }
+
+  const payload = {
+    activeStoryId: state.activeStoryId,
+    step: state.step,
+    form: state.form,
+    savedAt: new Date().toISOString()
+  };
+
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+  } catch (error) {
+    console.warn("Autosave fallito", error);
+  }
+}
+
+function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+  } catch (error) {
+    console.warn("Pulizia bozza fallita", error);
+  }
+}
+
+async function recoverDraftIfPresent() {
+  let raw = "";
+  try {
+    raw = localStorage.getItem(DRAFT_KEY);
+  } catch (error) {
+    console.warn("Lettura bozza fallita", error);
+    return;
+  }
+
+  if (!raw) {
+    return;
+  }
+
+  try {
+    const draft = JSON.parse(raw);
+    if (!draft || typeof draft !== "object" || !draft.form || typeof draft.form !== "object") {
+      clearDraft();
+      return;
+    }
+
+    const mergedForm = normalizeLoadedForm({
+      ...createDefaultForm(),
+      ...draft.form
+    });
+
+    const hasContent = STORY_CONTENT_FIELDS.some((field) => sanitize(mergedForm[field]).length > 0);
+    if (!hasContent) {
+      clearDraft();
+      return;
+    }
+
+    const ok = await showConfirmDialog(
+      "C'è una bozza non salvata. Vuoi recuperarla?",
+      { confirmLabel: "Recupera", cancelLabel: "Scarta" }
+    );
+
+    if (!ok) {
+      clearDraft();
+      return;
+    }
+
+    state.form = mergedForm;
+    state.activeStoryId = sanitize(draft.activeStoryId) || null;
+    state.step = clamp(Number(draft.step) || 1, 1, STEP_TOTAL);
+    state.isDirty = true;
+
+    applyFormToUI();
+    setStep(state.step);
+    updatePreviewAndGuidance();
+    showEditor();
+  } catch (error) {
+    console.warn("Recovery bozza fallito", error);
+    clearDraft();
+  }
 }
 
 function buildAutomaticTitle() {

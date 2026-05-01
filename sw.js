@@ -1,4 +1,4 @@
-const CACHE_VERSION = "storiesociali-v20260501";
+const CACHE_VERSION = "storiesociali-v20260501-fix01";
 const CORE_CACHE = `${CACHE_VERSION}-core`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -23,7 +23,13 @@ const CORE_ASSETS = [
 ];
 
 const CRITICAL_ASSETS = CORE_ASSETS.filter((asset) => !asset.endsWith(".ttf"));
-const OPTIONAL_ASSETS = ["/assets/fonts/lora-regular.ttf"];
+const OPTIONAL_ASSETS = [
+  "/assets/fonts/lora-regular.ttf",
+  "/assets/fonts/open-dyslexic-regular.woff2",
+  "/assets/fonts/open-dyslexic-regular.woff",
+  "/assets/fonts/open-dyslexic-bold.woff2",
+  "/assets/fonts/open-dyslexic-bold.woff"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -139,5 +145,8 @@ async function staleWhileRevalidateAsset(request) {
 
 function normalizeCacheKey(request) {
   const requestUrl = new URL(request.url);
+  if (requestUrl.searchParams.has("v")) {
+    return `${requestUrl.pathname}?v=${requestUrl.searchParams.get("v")}`;
+  }
   return requestUrl.pathname;
 }

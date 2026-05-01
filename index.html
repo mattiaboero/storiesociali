@@ -253,7 +253,7 @@
   <div id="stepAnnouncer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
   <div class="app-layout">
     <header class="app-header">
-      <div class="app-logo">Raccont<span>ami</span><small class="app-logo-domain">storiesociali.org</small></div>
+      <button id="appLogoBtn" class="app-logo app-logo--btn" type="button" aria-label="Torna alla home delle storie salvate">Raccont<span>ami</span><small class="app-logo-domain">storiesociali.org</small></button>
       <div id="headerStepText" class="header-step-text">Storie salvate</div>
     </header>
 
@@ -404,7 +404,7 @@
                       <p class="sentence-text">8. Va bene se ho bisogno di stare un momento da solo. La maestra mi può aiutare.</p>
                     </div></div>
                   </div>
-                  <p class="story-example-cta"><a href="#main-content" id="usa-esempio-ricreazione">
+                  <p class="story-example-cta"><a href="#newStoryBtn" id="usa-esempio-ricreazione">
                     Crea una storia simile con il generatore →</a></p>
                 </article>
 
@@ -450,7 +450,7 @@
                       <p class="sentence-text">8. Se qualcosa mi sembra difficile, posso chiedere aiuto all'adulto vicino a me.</p>
                     </div></div>
                   </div>
-                  <p class="story-example-cta"><a href="#main-content" id="usa-esempio-mensa">
+                  <p class="story-example-cta"><a href="#newStoryBtn" id="usa-esempio-mensa">
                     Crea una storia simile con il generatore →</a></p>
                 </article>
 
@@ -488,7 +488,7 @@
                       <p class="sentence-text">6. Dopo la visita posso tornare a casa. Sono stato coraggioso.</p>
                     </div></div>
                   </div>
-                  <p class="story-example-cta"><a href="#main-content" id="usa-esempio-medico">
+                  <p class="story-example-cta"><a href="#newStoryBtn" id="usa-esempio-medico">
                     Crea una storia simile con il generatore →</a></p>
                 </article>
 
@@ -530,7 +530,7 @@
                       <p class="sentence-text">7. Non devo diventare subito amici. Posso iniziare con un sorriso.</p>
                     </div></div>
                   </div>
-                  <p class="story-example-cta"><a href="#main-content" id="usa-esempio-compagno-nuovo">
+                  <p class="story-example-cta"><a href="#newStoryBtn" id="usa-esempio-compagno-nuovo">
                     Crea una storia simile con il generatore →</a></p>
                 </article>
 
@@ -580,7 +580,7 @@
                       <p class="sentence-text">9. Le cose inaspettate non durano per sempre. Posso gestirle una alla volta.</p>
                     </div></div>
                   </div>
-                  <p class="story-example-cta"><a href="#main-content" id="usa-esempio-gita">
+                  <p class="story-example-cta"><a href="#newStoryBtn" id="usa-esempio-gita">
                     Crea una storia simile con il generatore →</a></p>
                 </article>
 
@@ -618,7 +618,7 @@
                       <p class="sentence-text">6. La fila finisce. Poi usciamo e andiamo a casa.</p>
                     </div></div>
                   </div>
-                  <p class="story-example-cta"><a href="#main-content" id="usa-esempio-fila-negozio">
+                  <p class="story-example-cta"><a href="#newStoryBtn" id="usa-esempio-fila-negozio">
                     Crea una storia simile con il generatore →</a></p>
                 </article>
               </div>
@@ -718,19 +718,19 @@
         <div class="main-panels">
           <aside class="wizard-panel">
             <div id="stepIndicator" class="step-indicator" aria-label="Passo 1 di 7">
-              <div class="step-dot" data-step-dot="1"><span class="step-check">✓</span><span class="step-number">1</span></div>
+              <button type="button" class="step-dot" data-step-dot="1" aria-label="Vai al passo 1"><span class="step-check" aria-hidden="true">✓</span><span class="step-number">1</span></button>
               <div class="step-line" data-step-line="1"></div>
-              <div class="step-dot" data-step-dot="2"><span class="step-check">✓</span><span class="step-number">2</span></div>
+              <button type="button" class="step-dot" data-step-dot="2" aria-label="Vai al passo 2"><span class="step-check" aria-hidden="true">✓</span><span class="step-number">2</span></button>
               <div class="step-line" data-step-line="2"></div>
-              <div class="step-dot" data-step-dot="3"><span class="step-check">✓</span><span class="step-number">3</span></div>
+              <button type="button" class="step-dot" data-step-dot="3" aria-label="Vai al passo 3"><span class="step-check" aria-hidden="true">✓</span><span class="step-number">3</span></button>
               <div class="step-line" data-step-line="3"></div>
-              <div class="step-dot" data-step-dot="4"><span class="step-check">✓</span><span class="step-number">4</span></div>
+              <button type="button" class="step-dot" data-step-dot="4" aria-label="Vai al passo 4"><span class="step-check" aria-hidden="true">✓</span><span class="step-number">4</span></button>
               <div class="step-line" data-step-line="4"></div>
-              <div class="step-dot" data-step-dot="5"><span class="step-check">✓</span><span class="step-number">5</span></div>
+              <button type="button" class="step-dot" data-step-dot="5" aria-label="Vai al passo 5"><span class="step-check" aria-hidden="true">✓</span><span class="step-number">5</span></button>
               <div class="step-line" data-step-line="5"></div>
-              <div class="step-dot" data-step-dot="6"><span class="step-check">✓</span><span class="step-number">6</span></div>
+              <button type="button" class="step-dot" data-step-dot="6" aria-label="Vai al passo 6"><span class="step-check" aria-hidden="true">✓</span><span class="step-number">6</span></button>
               <div class="step-line" data-step-line="6"></div>
-              <div class="step-dot" data-step-dot="7"><span class="step-check">✓</span><span class="step-number">7</span></div>
+              <button type="button" class="step-dot" data-step-dot="7" aria-label="Vai al passo 7"><span class="step-check" aria-hidden="true">✓</span><span class="step-number">7</span></button>
             </div>
 
             <div class="step-container">
@@ -763,7 +763,7 @@
                     <option value="9-12">9-12 anni</option>
                   </select>
 
-                  <p id="ageHint" class="hint-box"></p>
+                  <p id="ageHint" class="hint-box" aria-live="polite" aria-atomic="true"></p>
                 </section>
 
                 <section class="step-content question-card" data-step="2" data-type="base">
@@ -773,7 +773,7 @@
 
                   <label class="field-label" for="situationInput">Descrizione libera</label>
                   <textarea id="situationInput" name="situationInput" class="story-input" rows="4" aria-required="true" placeholder="Es. Durante ricreazione Luca si agita quando c'è molta confusione."></textarea>
-                  <div id="situationComplexPreview" class="hint-box"></div>
+                  <div id="situationComplexPreview" class="hint-box" aria-live="polite" aria-atomic="true"></div>
 
                   <fieldset class="field-group">
                     <legend class="field-label">Esempi rapidi</legend>
@@ -814,7 +814,7 @@
 
                   <fieldset class="field-group">
                     <legend class="field-label">Anteprima frase descrittiva</legend>
-                    <div id="descriptivePreview" class="hint-box"></div>
+                    <div id="descriptivePreview" class="hint-box" aria-live="polite" aria-atomic="true"></div>
                   </fieldset>
                 </section>
 
@@ -971,7 +971,7 @@
             <div id="lexicalWarnings" class="status-box" aria-live="polite" aria-atomic="true"></div>
             <article id="storyPreview" class="story-preview image-none">
               <h2 id="previewTitle" class="story-title">Nuova storia sociale</h2>
-              <p id="previewMeta" class="preview-meta"></p>
+              <p id="previewMeta" class="preview-meta" aria-live="polite" aria-atomic="true"></p>
               <div id="previewSentences" class="sentences"></div>
             </article>
           </section>
@@ -981,7 +981,7 @@
 
     <footer id="appFooter" class="app-footer hidden">
       <div class="footer-group">
-        <button id="backHomeBtn" class="btn btn-secondary" type="button">Storie salvate</button>
+        <button id="backHomeBtn" class="btn btn-secondary" type="button" aria-label="Torna alla lista delle storie salvate">← Storie salvate</button>
       </div>
       <div class="footer-group wizard-nav">
         <button id="prevStepBtn" class="btn btn-secondary" type="button">Indietro</button>
@@ -997,6 +997,6 @@
     </footer>
   </div>
 
-  <script src="app.js?v=20260501a" defer></script>
+  <script src="app.js?v=20260501b" defer></script>
 </body>
 </html>
