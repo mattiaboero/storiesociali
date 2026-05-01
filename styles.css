@@ -608,7 +608,7 @@ textarea.story-input {
 
 .btn:focus-visible,
 .chip:focus-visible,
-.radio-option:focus-visible,
+.radio-option:focus-within,
 .style-card:focus-visible,
 a:focus-visible {
   outline: 3px solid var(--color-primary);
@@ -1269,6 +1269,82 @@ a:focus-visible {
 
   .preview-panel {
     padding: var(--space-xl);
+  }
+}
+
+/* ── Esempi di storie sociali ───────────────────────────── */
+
+.story-examples-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+  margin-top: var(--space-lg);
+}
+
+.story-example {
+  background: var(--story-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-lg);
+  break-inside: avoid;
+}
+
+.story-example-header {
+  margin-bottom: var(--space-md);
+}
+
+.story-example-title {
+  font-family: var(--font-story);
+  font-size: var(--text-lg);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-xs);
+}
+
+.story-example-meta {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.story-example-age,
+.story-example-situation {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-family: var(--font-ui);
+}
+
+.story-example-age {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  padding: 0.15em 0.6em;
+  border-radius: 100px;
+  font-weight: 500;
+}
+
+.story-example-sentences {
+  display: block;
+}
+
+.story-example-cta {
+  margin-top: var(--space-md);
+  font-size: var(--text-sm);
+  font-family: var(--font-ui);
+}
+
+.story-example-cta a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.story-example-cta a:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 860px) {
+  .story-examples-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 

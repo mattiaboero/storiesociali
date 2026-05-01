@@ -11,6 +11,7 @@ const PDF_FONT_FAMILY = "LoraPDF";
 
 let pdfFontBase64Cache = null;
 let pdfFontLoadPromise = null;
+let pdfFontFailed = false;
 let baseFontsLoaded = false;
 let baseFontsLoadPromise = null;
 let dyslexicFontLoaded = false;
@@ -20,6 +21,45 @@ const AFFIRMATIVE_PRESET_TEXTS = {
   preset_retry: "Va bene se non riesco subito. Posso riprovare.",
   preset_help: "Gli adulti mi possono aiutare."
 };
+
+const WIZARD_FIELD_MAP = {
+  protagonistType: "protagonistType",
+  protagonistName: "protagonistName",
+  ageRange: "ageRange",
+  situationInput: "situation",
+  whereInput: "where",
+  whenInput: "when",
+  whoInput: "who",
+  whatOthersInput: "whatOthers",
+  perspectiveInput: "perspective",
+  perspectiveExtraInput: "perspectiveExtra",
+  directiveInput: "directive",
+  affirmativeCustom: "affirmativeCustom",
+  storyTitle: "title",
+  visualStyle: "visualStyle",
+  imageSpace: "imageSpace",
+  fontChoice: "fontChoice"
+};
+
+const PEDAGOGICAL_SOFT_TERMS = new Set([
+  "domanda",
+  "strumento",
+  "contesto",
+  "valutare",
+  "comprendere",
+  "significativo",
+  "modalità",
+  "tipologia",
+  "categoria",
+  "risorsa",
+  "utente",
+  "feedback",
+  "input",
+  "attuale",
+  "temporaneo",
+  "eventuale",
+  "problematica"
+]);
 
 const AGE_HINTS = {
   "3-5": "Suggerimenti molto semplici: frasi corte, parole concrete, 6-8 parole.",
@@ -96,19 +136,15 @@ const SOSTITUZIONI = [
   { da: "comunicare", a: "dire" },
   { da: "trasmettere", a: "mandare" },
   { da: "acquisire", a: "ottenere" },
-  { da: "acquisire", a: "avere" },
   { da: "provvedere", a: "fare" },
   { da: "procedere", a: "andare avanti" },
   { da: "recarsi", a: "andare" },
   { da: "predisporre", a: "preparare" },
-  { da: "predisporre", a: "fare" },
   { da: "richiedere", a: "chiedere" },
   { da: "necessitare", a: "avere bisogno" },
   { da: "consentire", a: "permettere" },
-  { da: "consentire", a: "lasciare" },
   { da: "constatare", a: "vedere" },
   { da: "manifestare", a: "mostrare" },
-  { da: "manifestare", a: "dire" },
   { da: "dichiarare", a: "dire" },
   { da: "affermare", a: "dire" },
   { da: "asserire", a: "dire" },
@@ -161,7 +197,6 @@ const SOSTITUZIONI = [
   { da: "consultare", a: "guardare" },
   { da: "riscontrare", a: "trovare" },
   { da: "rilevare", a: "notare" },
-  { da: "riscontrare", a: "vedere" },
   { da: "appurare", a: "scoprire" },
   { da: "accertare", a: "controllare" },
   { da: "confermare", a: "dire che sì" },
@@ -365,8 +400,13 @@ const SOSTITUZIONI = [
 
 const SOSTITUZIONI_UNICHE = dedupeSostituzioni(SOSTITUZIONI);
 const SOSTITUZIONI_ORDINATE = [...SOSTITUZIONI_UNICHE].sort((a, b) => b.da.length - a.da.length);
-const SOSTITUZIONI_MAP = buildSostituzioniMap(SOSTITUZIONI_UNICHE);
+const SOSTITUZIONI_WIZARD = SOSTITUZIONI_ORDINATE.filter(
+  ({ da }) => !PEDAGOGICAL_SOFT_TERMS.has(da.toLowerCase())
+);
+const SOSTITUZIONI_WIZARD_MAP = buildSostituzioniMap(SOSTITUZIONI_WIZARD);
 const REPLACEMENT_PATTERN_CACHE = new Map();
+const HIGHLIGHT_PATTERN_CACHE = new Map();
+const WORD_BOUNDARY_REGEX_CACHE = new Map();
 
 const state = {
   stories: [],
@@ -516,6 +556,7 @@ function bindEvents() {
   document.getElementById("perspectiveExamples").addEventListener("click", onPerspectiveExampleClick);
 
   refs.storiesList.addEventListener("click", onStoryCardAction);
+  refs.homeScreen.addEventListener("click", onStoryExampleCtaClick);
 }
 
 function onWizardChange(event) {
@@ -524,41 +565,18 @@ function onWizardChange(event) {
     return;
   }
 
-  const valueMap = {
-    protagonistType: "protagonistType",
-    protagonistName: "protagonistName",
-    ageRange: "ageRange",
-    situationInput: "situation",
-    whereInput: "where",
-    whenInput: "when",
-    whoInput: "who",
-    whatOthersInput: "whatOthers",
-    perspectiveInput: "perspective",
-    perspectiveExtraInput: "perspectiveExtra",
-    directiveInput: "directive",
-    affirmativePreset: "affirmativePreset",
-    affirmativeCustom: "affirmativeCustom",
-    storyTitle: "title",
-    visualStyle: "visualStyle",
-    imageSpace: "imageSpace",
-    fontChoice: "fontChoice"
-  };
-
-  const field = valueMap[name];
+  const field = WIZARD_FIELD_MAP[name];
   if (field) {
     state.form[field] = value;
   }
 
   if (name === "affirmativePreset") {
     state.form.affirmativePreset = normalizeAffirmativePreset(value);
+    updateAffirmativeCustomState();
   }
 
   if (name === "ageRange") {
     updateAgeHint();
-  }
-
-  if (name === "affirmativePreset") {
-    updateAffirmativeCustomState();
   }
 
   syncSelectionStates();
@@ -623,6 +641,20 @@ function onStoryCardAction(event) {
   if (button.dataset.action === "delete") {
     deleteStory(storyId);
   }
+}
+
+function onStoryExampleCtaClick(event) {
+  const link = event.target.closest("a[id^=\"usa-esempio-\"]");
+  if (!link) {
+    return;
+  }
+
+  event.preventDefault();
+  const main = document.getElementById("main-content");
+  if (main) {
+    main.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  startNewStory();
 }
 
 function showHome() {
@@ -804,7 +836,7 @@ function updateSituationComplexPreview() {
     return;
   }
 
-  const { applicate } = applicaSostituzioni(source);
+  const { applicate } = applicaSostituzioni(source, SOSTITUZIONI_WIZARD);
   const unique = dedupeApplied(applicate).slice(0, 6);
 
   if (!unique.length) {
@@ -814,7 +846,7 @@ function updateSituationComplexPreview() {
 
   const pairs = unique.map((item) => `${item.originale} -> ${item.sostituito}`).join(" • ");
   refs.situationComplexPreview.innerHTML =
-    `<strong>Semplificazioni:</strong> ${pairs}<br>${evidenziaParoleComplesse(source)}`;
+    `<strong>Semplificazioni:</strong> ${pairs}<br>${evidenziaParoleComplesse(source, SOSTITUZIONI_WIZARD)}`;
 }
 
 function updateDirectiveWarning() {
@@ -1153,7 +1185,7 @@ function buildDescriptiveSentence(where, when, who, whatOthers) {
     const othersStartsWithWho = othersLower.startsWith(`${whoLower} `);
     const whoContainsOthersFirstWord =
       firstWordOthers.length > 2 &&
-      new RegExp(`\\b${escapeRegExp(firstWordOthers)}\\b`, "i").test(whoLower);
+      getWordBoundaryPattern(firstWordOthers).test(whoLower);
 
     if (othersStartsWithWho) {
       pieces.push(safeOthers);
@@ -1314,11 +1346,34 @@ function getReplacementPattern(da) {
   return pattern;
 }
 
-function applicaSostituzioni(testo) {
+function getHighlightPattern(da) {
+  const key = da.toLowerCase();
+  if (HIGHLIGHT_PATTERN_CACHE.has(key)) {
+    return HIGHLIGHT_PATTERN_CACHE.get(key);
+  }
+
+  const escaped = escapeRegExp(escapeHtml(da)).replace(/\\\s+/g, "\\s+");
+  const pattern = new RegExp(`(^|[\\s,;:.!?()\"'«»])(${escaped})(?=($|[\\s,;:.!?()\"'«»]))`, "giu");
+  HIGHLIGHT_PATTERN_CACHE.set(key, pattern);
+  return pattern;
+}
+
+function getWordBoundaryPattern(word) {
+  const key = word.toLowerCase();
+  if (WORD_BOUNDARY_REGEX_CACHE.has(key)) {
+    return WORD_BOUNDARY_REGEX_CACHE.get(key);
+  }
+
+  const pattern = new RegExp(`\\b${escapeRegExp(key)}\\b`, "i");
+  WORD_BOUNDARY_REGEX_CACHE.set(key, pattern);
+  return pattern;
+}
+
+function applicaSostituzioni(testo, replacements = SOSTITUZIONI_ORDINATE) {
   let risultato = String(testo || "");
   const applicate = [];
 
-  for (const { da, a } of SOSTITUZIONI_ORDINATE) {
+  for (const { da, a } of replacements) {
     const pattern = getReplacementPattern(da);
     risultato = risultato.replace(pattern, (full, prefix, match) => {
       const sostituito = preserveMatchCase(match, a);
@@ -1330,12 +1385,11 @@ function applicaSostituzioni(testo) {
   return { testo: risultato, applicate };
 }
 
-function evidenziaParoleComplesse(testo) {
+function evidenziaParoleComplesse(testo, replacements = SOSTITUZIONI_ORDINATE) {
   let html = escapeHtml(String(testo || ""));
 
-  for (const { da } of SOSTITUZIONI_ORDINATE) {
-    const escapedDa = escapeRegExp(escapeHtml(da)).replace(/\\\s+/g, "\\s+");
-    const pattern = new RegExp(`(^|[\\s,;:.!?()\"'«»])(${escapedDa})(?=($|[\\s,;:.!?()\"'«»]))`, "giu");
+  for (const { da } of replacements) {
+    const pattern = getHighlightPattern(da);
 
     html = html.replace(
       pattern,
@@ -1483,7 +1537,7 @@ function collectLexicalSuggestions() {
   const result = [];
   const seen = new Set();
   const seenWords = new Set();
-  const { applicate } = applicaSostituzioni(source);
+  const { applicate } = applicaSostituzioni(source, SOSTITUZIONI_WIZARD);
 
   for (const item of applicate) {
     const key = `${item.originale.toLowerCase()}=>${item.sostituito.toLowerCase()}`;
@@ -1501,11 +1555,11 @@ function collectLexicalSuggestions() {
   const words = source.match(/[A-Za-zÀ-ÿ']+/g) || [];
   for (const word of words) {
     const lower = word.toLowerCase();
-    if (lower.length <= 10 || seenWords.has(lower)) {
+    if (lower.length <= 10 || seenWords.has(lower) || PEDAGOGICAL_SOFT_TERMS.has(lower)) {
       continue;
     }
 
-    const suggestion = SOSTITUZIONI_MAP.get(lower) || fallbackSimpleSuggestion(lower);
+    const suggestion = SOSTITUZIONI_WIZARD_MAP.get(lower) || fallbackSimpleSuggestion(lower);
     seen.add(`${lower}=>${suggestion.toLowerCase()}`);
     seenWords.add(lower);
     result.push({
@@ -1655,6 +1709,7 @@ function renderHomeList() {
     openBtn.dataset.action = "open";
     openBtn.dataset.id = story.id;
     openBtn.textContent = "Apri";
+    openBtn.setAttribute("aria-label", `Apri \"${story.title || "storia senza titolo"}\"`);
 
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "btn";
@@ -1662,6 +1717,7 @@ function renderHomeList() {
     deleteBtn.dataset.action = "delete";
     deleteBtn.dataset.id = story.id;
     deleteBtn.textContent = "Elimina";
+    deleteBtn.setAttribute("aria-label", `Elimina \"${story.title || "storia senza titolo"}\"`);
 
     actions.appendChild(openBtn);
     actions.appendChild(deleteBtn);
@@ -1706,6 +1762,7 @@ function fallbackCopy(text) {
     document.body.appendChild(textarea);
     textarea.focus();
     textarea.select();
+    // Fallback legacy: i browser moderni usano navigator.clipboard.
     const copied = document.execCommand("copy");
     if (!copied) {
       throw new Error("execCommand copy non riuscito");
@@ -1762,6 +1819,10 @@ function loadPdfFontBase64() {
     return Promise.resolve(pdfFontBase64Cache);
   }
 
+  if (pdfFontFailed) {
+    return Promise.reject(new Error("Font PDF non disponibile."));
+  }
+
   if (pdfFontLoadPromise) {
     return pdfFontLoadPromise;
   }
@@ -1777,6 +1838,7 @@ function loadPdfFontBase64() {
         }
         const buffer = await response.arrayBuffer();
         pdfFontBase64Cache = arrayBufferToBase64(buffer);
+        pdfFontFailed = false;
         return pdfFontBase64Cache;
       } catch (error) {
         lastError = error;
@@ -1787,6 +1849,9 @@ function loadPdfFontBase64() {
     throw lastError || new Error("Nessun font PDF disponibile.");
   })()
     .finally(() => {
+      if (!pdfFontBase64Cache) {
+        pdfFontFailed = true;
+      }
       pdfFontLoadPromise = null;
     });
 
