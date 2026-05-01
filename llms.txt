@@ -28,6 +28,7 @@ Rapporto consigliato: 2-5 frasi descrittive per ogni frase direttiva.
 - Export PDF, stampa, copia testo
 - Salvataggio localStorage - nessun server, nessun account
 - Temi: standard, alto contrasto, OpenDyslexic
+- Sei storie sociali di esempio in italiano (ricreazione, mensa, medico, compagno nuovo, gita scolastica, fila al negozio)
 - Gratuito, senza registrazione
 
 ## Pagine
