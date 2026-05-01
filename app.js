@@ -19,7 +19,18 @@ let visualStateToken = 0;
 
 const AFFIRMATIVE_PRESET_TEXTS = {
   preset_retry: "Va bene se non riesco subito. Posso riprovare.",
-  preset_help: "Gli adulti mi possono aiutare."
+  preset_help: "Gli adulti mi possono aiutare.",
+  preset_calm: "Posso respirare piano e aspettare che passi.",
+  preset_step: "Ogni piccolo passo è importante."
+};
+
+const EXAMPLE_PRESET_MAP = {
+  ricreazione: "La ricreazione a scuola",
+  mensa: "Il momento della mensa",
+  medico: "Andare dal medico",
+  "compagno-nuovo": "Un nuovo compagno di classe",
+  gita: "La gita scolastica",
+  "fila-negozio": "Fare la fila"
 };
 
 const WIZARD_FIELD_MAP = {
@@ -40,6 +51,23 @@ const WIZARD_FIELD_MAP = {
   imageSpace: "imageSpace",
   fontChoice: "fontChoice"
 };
+
+const STORY_CONTENT_FIELDS = [
+  "protagonistName",
+  "situation",
+  "where",
+  "when",
+  "who",
+  "whatOthers",
+  "perspective",
+  "perspectiveExtra",
+  "directive",
+  "affirmativeCustom",
+  "title"
+];
+
+const HOME_LABEL = "Storie salvate";
+const UNSAVED_CHANGES_MESSAGE = "Hai modifiche non salvate. Vuoi continuare e perdere le modifiche?";
 
 const PEDAGOGICAL_SOFT_TERMS = new Set([
   "domanda",
@@ -412,7 +440,8 @@ const state = {
   stories: [],
   activeStoryId: null,
   step: 1,
-  form: createDefaultForm()
+  form: createDefaultForm(),
+  isDirty: false
 };
 
 const refs = {};
@@ -497,6 +526,11 @@ function cacheRefs() {
   refs.backHomeBtn = document.getElementById("backHomeBtn");
   refs.storiesList = document.getElementById("storiesList");
   refs.emptyState = document.getElementById("emptyState");
+  refs.archiveSection = document.getElementById("archiveSection");
+  refs.homeShell = document.querySelector(".home-shell");
+  refs.storiesCount = document.getElementById("storiesCount");
+  refs.guideToggleBtn = document.getElementById("guideToggleBtn");
+  refs.seoArticle = document.getElementById("seo-article-main");
   refs.stepIndicator = document.getElementById("stepIndicator");
   refs.stepDots = Array.from(document.querySelectorAll("[data-step-dot]"));
   refs.stepLines = Array.from(document.querySelectorAll("[data-step-line]"));
@@ -510,6 +544,7 @@ function cacheRefs() {
   refs.printBtn = document.getElementById("printBtn");
   refs.pdfBtn = document.getElementById("pdfBtn");
   refs.copyBtn = document.getElementById("copyBtn");
+  refs.mobilePreviewBtn = document.getElementById("mobilePreviewBtn");
   refs.storyPreview = document.getElementById("storyPreview");
   refs.previewTitle = document.getElementById("previewTitle");
   refs.previewMeta = document.getElementById("previewMeta");
@@ -525,7 +560,9 @@ function cacheRefs() {
 }
 
 function bindEvents() {
-  refs.newStoryBtn.addEventListener("click", startNewStory);
+  refs.newStoryBtn.addEventListener("click", () => {
+    void startNewStory();
+  });
   refs.backHomeBtn.addEventListener("click", () => {
     showHome();
   });
@@ -557,6 +594,13 @@ function bindEvents() {
 
   refs.storiesList.addEventListener("click", onStoryCardAction);
   refs.homeScreen.addEventListener("click", onStoryExampleCtaClick);
+  if (refs.guideToggleBtn) {
+    refs.guideToggleBtn.addEventListener("click", toggleGuide);
+  }
+  if (refs.mobilePreviewBtn) {
+    refs.mobilePreviewBtn.addEventListener("click", focusPreviewPanel);
+  }
+  window.addEventListener("beforeunload", onBeforeUnload);
 }
 
 function onWizardChange(event) {
@@ -568,10 +612,12 @@ function onWizardChange(event) {
   const field = WIZARD_FIELD_MAP[name];
   if (field) {
     state.form[field] = value;
+    state.isDirty = true;
   }
 
   if (name === "affirmativePreset") {
     state.form.affirmativePreset = normalizeAffirmativePreset(value);
+    state.isDirty = true;
     updateAffirmativeCustomState();
   }
 
@@ -592,15 +638,14 @@ function onSituationExampleClick(event) {
     return;
   }
 
-  const preset = SITUATION_PRESETS[button.dataset.example];
+  const presetName = button.dataset.example;
+  const preset = SITUATION_PRESETS[presetName];
   if (!preset) {
     return;
   }
 
-  state.form = {
-    ...state.form,
-    ...preset
-  };
+  applySituationPreset(presetName, true);
+  state.isDirty = true;
 
   applyFormToUI();
   updatePreviewAndGuidance();
@@ -617,6 +662,7 @@ function onPerspectiveExampleClick(event) {
   } else {
     state.form.perspectiveExtra = button.dataset.perspective;
   }
+  state.isDirty = true;
 
   applyFormToUI();
   updatePreviewAndGuidance();
@@ -634,34 +680,37 @@ function onStoryCardAction(event) {
   }
 
   if (button.dataset.action === "open") {
-    openStory(storyId);
+    void openStory(storyId);
     return;
   }
 
   if (button.dataset.action === "delete") {
-    deleteStory(storyId);
+    void deleteStory(storyId);
+    return;
+  }
+
+  if (button.dataset.action === "duplicate") {
+    duplicateStory(storyId);
   }
 }
 
-function onStoryExampleCtaClick(event) {
+async function onStoryExampleCtaClick(event) {
   const link = event.target.closest("a[id^=\"usa-esempio-\"]");
   if (!link) {
     return;
   }
 
   event.preventDefault();
-  const main = document.getElementById("main-content");
-  if (main) {
-    main.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-  startNewStory();
+  const presetAlias = link.id.replace("usa-esempio-", "");
+  const presetName = EXAMPLE_PRESET_MAP[presetAlias];
+  await startNewStoryWithPreset(presetName);
 }
 
 function showHome() {
   refs.homeScreen.classList.add("active");
   refs.editorScreen.classList.remove("active");
   refs.appFooter.classList.add("hidden");
-  refs.headerStepText.textContent = "Archivio storie";
+  refs.headerStepText.textContent = HOME_LABEL;
   renderHomeList();
 }
 
@@ -670,6 +719,103 @@ function showEditor() {
   refs.editorScreen.classList.add("active");
   refs.appFooter.classList.remove("hidden");
   updateStepIndicator();
+}
+
+function toggleGuide() {
+  if (!refs.seoArticle || !refs.guideToggleBtn) {
+    return;
+  }
+
+  const isExpanded = refs.guideToggleBtn.getAttribute("aria-expanded") === "true";
+  refs.seoArticle.classList.toggle("seo-article--collapsed", isExpanded);
+  refs.guideToggleBtn.setAttribute("aria-expanded", isExpanded ? "false" : "true");
+}
+
+function updateHomeLayout() {
+  if (!refs.homeShell) {
+    return;
+  }
+
+  const hasStories = state.stories.length > 0;
+  refs.homeShell.classList.toggle("home-shell--returning", hasStories);
+
+  if (refs.storiesCount) {
+    refs.storiesCount.textContent = hasStories ? String(state.stories.length) : "";
+    if (hasStories) {
+      refs.storiesCount.setAttribute("aria-label", `${state.stories.length} storie salvate`);
+    } else {
+      refs.storiesCount.removeAttribute("aria-label");
+    }
+  }
+
+  if (!refs.seoArticle || !refs.guideToggleBtn) {
+    return;
+  }
+
+  if (!hasStories) {
+    refs.seoArticle.classList.remove("seo-article--collapsed");
+    refs.guideToggleBtn.setAttribute("aria-expanded", "true");
+    delete refs.homeShell.dataset.layoutInitialized;
+    return;
+  }
+
+  if (refs.homeShell.dataset.layoutInitialized !== "true") {
+    refs.seoArticle.classList.add("seo-article--collapsed");
+    refs.guideToggleBtn.setAttribute("aria-expanded", "false");
+    refs.homeShell.dataset.layoutInitialized = "true";
+  }
+}
+
+function focusPreviewPanel() {
+  if (!refs.storyPreview) {
+    return;
+  }
+  refs.storyPreview.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function onBeforeUnload(event) {
+  if (!state.isDirty) {
+    return;
+  }
+  event.preventDefault();
+  event.returnValue = "";
+}
+
+async function confirmDiscardIfDirty() {
+  if (!state.isDirty) {
+    return true;
+  }
+  return showConfirmDialog(UNSAVED_CHANGES_MESSAGE, { confirmLabel: "Continua" });
+}
+
+function applySituationPreset(presetName, preserveExisting = false) {
+  const preset = SITUATION_PRESETS[presetName];
+  if (!preset) {
+    return false;
+  }
+
+  state.form = {
+    ...state.form,
+    situation: preset.situation,
+    where: preset.where,
+    when: preset.when,
+    who: preset.who,
+    whatOthers: preset.whatOthers,
+    perspective: preserveExisting ? (state.form.perspective || preset.perspective) : preset.perspective,
+    directive: preserveExisting ? (state.form.directive || preset.directive) : preset.directive,
+    title: preserveExisting ? (state.form.title || preset.title) : preset.title
+  };
+  return true;
+}
+
+async function startNewStoryWithPreset(presetName) {
+  const started = await startNewStory({ presetName });
+  if (!started) {
+    return;
+  }
+  if (presetName) {
+    setStep(2);
+  }
 }
 
 function setStep(nextStep) {
@@ -706,14 +852,38 @@ function setStep(nextStep) {
   updateStepIndicator();
 }
 
-function startNewStory() {
+async function startNewStory(options = {}) {
+  const { presetName = "" } = options;
+  const canDiscard = await confirmDiscardIfDirty();
+  if (!canDiscard) {
+    return false;
+  }
+
   state.activeStoryId = null;
   state.form = createDefaultForm();
-  state.step = 1;
+  const presetApplied = applySituationPreset(presetName, false);
+  state.step = presetApplied ? 2 : 1;
+  state.isDirty = presetApplied;
   applyFormToUI();
-  setStep(1);
+  setStep(state.step);
   updatePreviewAndGuidance();
   showEditor();
+  return true;
+}
+
+function hasStoryDraftContent() {
+  return STORY_CONTENT_FIELDS.some((field) => sanitize(state.form[field]).length > 0);
+}
+
+function updateFooterActions(story = null) {
+  const hasSentences = story ? story.sentences.length > 0 : false;
+  const canUseActions = hasSentences && hasStoryDraftContent();
+  const actions = [refs.saveStoryBtn, refs.copyBtn, refs.pdfBtn, refs.printBtn];
+  actions.forEach((button) => {
+    if (button) {
+      button.disabled = !canUseActions;
+    }
+  });
 }
 
 function applyFormToUI() {
@@ -888,6 +1058,7 @@ function updatePreviewAndGuidance() {
   renderPreview(story);
   renderBalance(story.balance, story.counts);
   renderLexicalWarnings();
+  updateFooterActions(story);
 }
 
 function loadBaseFonts() {
@@ -1446,7 +1617,10 @@ function evaluateBalance(counts) {
 
 function renderPreview(story) {
   refs.previewTitle.textContent = story.title;
-  refs.previewMeta.textContent = `Descrittive ${story.counts.descriptive} | Prospettiche ${story.counts.perspective} | Direttive ${story.counts.directive} | Affermative ${story.counts.affirmative}`;
+  const balanceBadge = story.balance.ok ? "✓" : "⚠";
+  refs.previewMeta.textContent = `${balanceBadge} Descrittive ${story.counts.descriptive} | Prospettiche ${story.counts.perspective} | Direttive ${story.counts.directive} | Affermative ${story.counts.affirmative}`;
+  refs.previewMeta.classList.toggle("preview-meta--ok", story.balance.ok);
+  refs.previewMeta.classList.toggle("preview-meta--warn", !story.balance.ok);
 
   refs.previewSentences.innerHTML = "";
 
@@ -1597,7 +1771,7 @@ function saveCurrentStory() {
   }
 
   const story = buildStory();
-  if (!story.sentences.length) {
+  if (!hasStoryDraftContent()) {
     showToast("Compila almeno alcuni campi prima di salvare.", "error");
     return;
   }
@@ -1625,6 +1799,7 @@ function saveCurrentStory() {
   }
 
   state.activeStoryId = id;
+  state.isDirty = false;
   persistStories();
   renderHomeList();
   applyFormToUI();
@@ -1632,10 +1807,17 @@ function saveCurrentStory() {
   showToast("Storia salvata in archivio locale.", "success");
 }
 
-function openStory(storyId) {
+async function openStory(storyId) {
   const story = state.stories.find((item) => item.id === storyId);
   if (!story) {
     return;
+  }
+
+  if (state.isDirty && storyId !== state.activeStoryId) {
+    const ok = await showConfirmDialog(UNSAVED_CHANGES_MESSAGE, { confirmLabel: "Apri storia" });
+    if (!ok) {
+      return;
+    }
   }
 
   state.activeStoryId = story.id;
@@ -1644,6 +1826,7 @@ function openStory(storyId) {
     ...story.steps,
     title: story.title || story.steps.title || ""
   });
+  state.isDirty = false;
 
   applyFormToUI();
   setStep(1);
@@ -1657,7 +1840,7 @@ async function deleteStory(storyId) {
     return;
   }
 
-  const ok = await showConfirmDialog(`Eliminare storia \"${story.title}\"?`);
+  const ok = await showConfirmDialog(`Eliminare storia \"${story.title}\"?`, { confirmLabel: "Elimina" });
   if (!ok) {
     return;
   }
@@ -1666,6 +1849,7 @@ async function deleteStory(storyId) {
   if (state.activeStoryId === storyId) {
     state.activeStoryId = null;
     state.form = createDefaultForm();
+    state.isDirty = false;
     applyFormToUI();
     updatePreviewAndGuidance();
   }
@@ -1688,6 +1872,9 @@ function renderHomeList() {
   sorted.forEach((story) => {
     const card = document.createElement("article");
     card.className = "story-card";
+    if (story.id === state.activeStoryId) {
+      card.classList.add("story-card--active");
+    }
 
     const title = document.createElement("h3");
     title.textContent = story.title || "Storia senza titolo";
@@ -1719,7 +1906,16 @@ function renderHomeList() {
     deleteBtn.textContent = "Elimina";
     deleteBtn.setAttribute("aria-label", `Elimina \"${story.title || "storia senza titolo"}\"`);
 
+    const duplicateBtn = document.createElement("button");
+    duplicateBtn.className = "btn";
+    duplicateBtn.type = "button";
+    duplicateBtn.dataset.action = "duplicate";
+    duplicateBtn.dataset.id = story.id;
+    duplicateBtn.textContent = "Duplica";
+    duplicateBtn.setAttribute("aria-label", `Duplica \"${story.title || "storia senza titolo"}\"`);
+
     actions.appendChild(openBtn);
+    actions.appendChild(duplicateBtn);
     actions.appendChild(deleteBtn);
 
     card.appendChild(title);
@@ -1729,9 +1925,16 @@ function renderHomeList() {
 
     refs.storiesList.appendChild(card);
   });
+
+  updateHomeLayout();
 }
 
 function copyStoryText() {
+  if (!hasStoryDraftContent()) {
+    showToast("Nessun testo da copiare.", "error");
+    return;
+  }
+
   const story = buildStory();
   const payload = `${story.title}\n\n${story.text}`;
 
@@ -1872,6 +2075,11 @@ async function ensurePdfUnicodeFont(doc) {
 }
 
 async function exportPDF() {
+  if (!hasStoryDraftContent()) {
+    showToast("Nessun testo da esportare.", "error");
+    return;
+  }
+
   const story = buildStory();
   if (!story.sentences.length) {
     showToast("Nessun testo da esportare.", "error");
@@ -1970,15 +2178,18 @@ function showToast(message, type = "info") {
   const container = getToastContainer();
   container.appendChild(toast);
 
+  const duration = type === "success" ? 3200 : 6000;
   window.setTimeout(() => {
     toast.remove();
     if (!container.children.length) {
       container.remove();
     }
-  }, 3200);
+  }, duration);
 }
 
-function showConfirmDialog(message) {
+function showConfirmDialog(message, options = {}) {
+  const { confirmLabel = "Conferma", cancelLabel = "Annulla" } = options;
+
   if (typeof HTMLDialogElement === "undefined") {
     return Promise.resolve(window.confirm(message));
   }
@@ -1990,8 +2201,8 @@ function showConfirmDialog(message) {
     dialog.innerHTML = `
       <p>${escapeHtml(message)}</p>
       <div class="dialog-actions">
-        <button type="button" class="btn btn-secondary" data-action="cancel">Annulla</button>
-        <button type="button" class="btn btn-primary" data-action="confirm">Elimina</button>
+        <button type="button" class="btn btn-secondary" data-action="cancel">${escapeHtml(cancelLabel)}</button>
+        <button type="button" class="btn btn-primary" data-action="confirm">${escapeHtml(confirmLabel)}</button>
       </div>
     `;
     document.body.appendChild(dialog);
@@ -2026,6 +2237,27 @@ function showConfirmDialog(message) {
       firstButton.focus();
     }
   });
+}
+
+function duplicateStory(storyId) {
+  const story = state.stories.find((item) => item.id === storyId);
+  if (!story) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const duplicate = normalizeStoryRecord({
+    ...story,
+    id: makeId(),
+    title: `${story.title || "Storia senza titolo"} (copia)`,
+    createdAt: now,
+    updatedAt: now
+  });
+
+  state.stories.push(duplicate);
+  persistStories();
+  renderHomeList();
+  showToast("Storia duplicata.", "success");
 }
 
 function announceStepChange() {

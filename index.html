@@ -254,7 +254,7 @@
   <div class="app-layout">
     <header class="app-header">
       <div class="app-logo">Raccont<span>ami</span><small class="app-logo-domain">storiesociali.org</small></div>
-      <div id="headerStepText" class="header-step-text">Archivio storie</div>
+      <div id="headerStepText" class="header-step-text">Storie salvate</div>
     </header>
 
     <main id="main-content" class="app-main">
@@ -276,7 +276,7 @@
             </div>
             <button id="newStoryBtn" class="btn btn-primary" type="button">Nuova storia</button>
           </div>
-          <article class="seo-article" aria-label="Guida storie sociali">
+          <article id="seo-article-main" class="seo-article" aria-label="Guida storie sociali">
             <nav aria-label="Indice della guida" class="seo-index-nav">
               <ol>
                 <li><a href="#cosa-sono-storie-sociali">Cos'è una storia sociale</a></li>
@@ -358,6 +358,7 @@
                 le direttive e giallo per le affermative.
                 Puoi usarle come punto di partenza e personalizzarle con il generatore.
               </p>
+              <p class="story-example-jump"><a href="#archiveSection">Vai alle storie salvate</a></p>
 
               <div class="story-examples-grid">
 
@@ -442,7 +443,7 @@
                     </div></div>
                     <div class="story-sentence"><div class="sentence-row">
                       <span class="sentence-type-bar" data-type="directive"></span>
-                      <p class="sentence-text">7. Proverò a assaggiare almeno un cucchiaio di quello che non conosco.</p>
+                      <p class="sentence-text">7. Proverò ad assaggiare almeno un cucchiaio di quello che non conosco.</p>
                     </div></div>
                     <div class="story-sentence"><div class="sentence-row">
                       <span class="sentence-type-bar" data-type="affirmative"></span>
@@ -672,11 +673,29 @@
             </section>
           </article>
 
-          <div class="home-header">
-            <h2>Storie Salvate</h2>
-          </div>
-          <p id="emptyState" class="empty-state">Nessuna storia salvata. Premi "Nuova storia".</p>
-          <div id="storiesList" class="stories-grid"></div>
+          <button
+            id="guideToggleBtn"
+            class="guide-toggle"
+            type="button"
+            aria-expanded="true"
+            aria-controls="seo-article-main"
+          >
+            <span class="guide-toggle-icon">📖</span>
+            Guida all'uso
+            <span class="guide-toggle-chevron" aria-hidden="true">▴</span>
+          </button>
+
+          <section id="archiveSection" class="archive-section" aria-label="Storie salvate">
+            <div class="home-header archive-header">
+              <h2>Storie salvate</h2>
+              <span id="storiesCount" class="stories-count" aria-live="polite"></span>
+            </div>
+            <p id="emptyState" class="empty-state">
+              Nessuna storia salvata.<br>
+              <span class="empty-state-hint">Crea la tua prima storia sociale in circa 10 minuti con il wizard guidato. Resta salvata in questo browser.</span>
+            </p>
+            <div id="storiesList" class="stories-grid"></div>
+          </section>
 
           <section class="trust-footer" aria-label="Informazioni legali e contatti">
             <p>
@@ -712,7 +731,7 @@
             <div class="step-container">
               <form id="wizardForm" novalidate>
                 <section class="step-content question-card active" data-step="1" data-type="base">
-                  <p class="question-label">Step 1</p>
+                  <p class="question-label">Passo 1</p>
                   <p class="question-text" role="heading" aria-level="3">Chi è il protagonista della storia?</p>
                   <p class="question-hint">Scegli punto di vista e imposta età per lessico suggerito.</p>
 
@@ -743,7 +762,7 @@
                 </section>
 
                 <section class="step-content question-card" data-step="2" data-type="base">
-                  <p class="question-label">Step 2</p>
+                  <p class="question-label">Passo 2</p>
                   <p class="question-text" role="heading" aria-level="3">Qual è la situazione da spiegare?</p>
                   <p class="question-hint">Parti da testo libero, poi usa esempio rapido se utile.</p>
 
@@ -765,7 +784,7 @@
                 </section>
 
                 <section class="step-content question-card" data-step="3" data-type="descriptive">
-                  <p class="question-label">Step 3 - Descrive</p>
+                  <p class="question-label">Passo 3 - Descrive</p>
                   <p class="question-text" role="heading" aria-level="3">Cosa succede nella scena?</p>
                   <p class="question-hint">Ogni risposta crea frase descrittiva chiara e breve.</p>
 
@@ -795,7 +814,7 @@
                 </section>
 
                 <section class="step-content question-card" data-step="4" data-type="perspective">
-                  <p class="question-label">Step 4 - Sente</p>
+                  <p class="question-label">Passo 4 - Sente</p>
                   <p class="question-text" role="heading" aria-level="3">Come si sentono le altre persone?</p>
                   <p class="question-hint">Aggiungi pensieri o emozioni di compagni e adulti.</p>
 
@@ -813,7 +832,7 @@
                 </section>
 
                 <section class="step-content question-card" data-step="5" data-type="directive">
-                  <p class="question-label">Step 5 - Fa</p>
+                  <p class="question-label">Passo 5 - Fa</p>
                   <p class="question-text" role="heading" aria-level="3">Cosa può fare il protagonista?</p>
                   <p class="question-hint">Inizia sempre con "Posso...", "Proverò a..." o "Potrei...".</p>
 
@@ -823,7 +842,7 @@
                 </section>
 
                 <section class="step-content question-card" data-step="6" data-type="affirmative">
-                  <p class="question-label">Step 6 - Rinforza</p>
+                  <p class="question-label">Passo 6 - Rinforza</p>
                   <p class="question-text" role="heading" aria-level="3">Scegli una chiusura positiva</p>
                   <p class="question-hint">Frase breve che rassicura e sostiene.</p>
 
@@ -839,6 +858,16 @@
                       <span>Gli adulti mi possono aiutare.</span>
                     </label>
                     <label class="radio-option">
+                      <input type="radio" name="affirmativePreset" value="preset_calm">
+                      <span class="radio-dot"></span>
+                      <span>Posso respirare piano e aspettare che passi.</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="affirmativePreset" value="preset_step">
+                      <span class="radio-dot"></span>
+                      <span>Ogni piccolo passo è importante.</span>
+                    </label>
+                    <label class="radio-option">
                       <input type="radio" name="affirmativePreset" value="custom">
                       <span class="radio-dot"></span>
                       <span>Scrivi la tua frase</span>
@@ -850,7 +879,7 @@
                 </section>
 
                 <section class="step-content question-card" data-step="7" data-type="base">
-                  <p class="question-label">Step 7</p>
+                  <p class="question-label">Passo 7</p>
                   <p class="question-text" role="heading" aria-level="3">Personalizza stile e anteprima</p>
                   <p class="question-hint">Scegli aspetto finale prima di salvare o stampare.</p>
 
@@ -923,9 +952,6 @@
               </form>
             </div>
 
-            <div id="balanceStatus" class="status-box" aria-live="polite" aria-atomic="true"></div>
-            <div id="lexicalWarnings" class="status-box" aria-live="polite" aria-atomic="true"></div>
-
             <div class="sentence-legend">
               <div class="legend-item"><span class="legend-dot legend-dot--descriptive"></span>Descrive</div>
               <div class="legend-item"><span class="legend-dot legend-dot--perspective"></span>Sente</div>
@@ -936,6 +962,8 @@
 
           <section class="preview-panel" aria-label="Anteprima storia">
             <p class="preview-header">Anteprima in tempo reale</p>
+            <div id="balanceStatus" class="status-box" aria-live="polite" aria-atomic="true"></div>
+            <div id="lexicalWarnings" class="status-box" aria-live="polite" aria-atomic="true"></div>
             <article id="storyPreview" class="story-preview image-none">
               <h2 id="previewTitle" class="story-title">Nuova storia sociale</h2>
               <p id="previewMeta" class="preview-meta"></p>
@@ -959,6 +987,7 @@
         <button id="copyBtn" class="btn btn-secondary" type="button">Copia testo</button>
         <button id="pdfBtn" class="btn btn-secondary" type="button">Scarica PDF</button>
         <button id="printBtn" class="btn btn-secondary" type="button">Stampa</button>
+        <button id="mobilePreviewBtn" class="btn btn-secondary mobile-only-btn" type="button">Anteprima</button>
       </div>
     </footer>
   </div>
