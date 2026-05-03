@@ -212,19 +212,6 @@ body {
   letter-spacing: 0;
 }
 
-.header-step-text {
-  font-family: var(--font-ui);
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.header-back-btn {
-  font-size: var(--text-sm);
-  padding: 0.3em 0.9em;
-}
-
 .home-shell {
   max-width: 1100px;
   margin: 0 auto;

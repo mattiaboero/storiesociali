@@ -66,7 +66,6 @@ const STORY_CONTENT_FIELDS = [
   "title"
 ];
 
-const HOME_LABEL = "Storie salvate";
 const UNSAVED_CHANGES_MESSAGE = "Hai modifiche non salvate. Vuoi continuare e perdere le modifiche?";
 
 const PEDAGOGICAL_SOFT_TERMS = new Set([
@@ -526,7 +525,6 @@ function cacheRefs() {
   refs.homeScreen = document.getElementById("homeScreen");
   refs.editorScreen = document.getElementById("editorScreen");
   refs.newStoryBtn = document.getElementById("newStoryBtn");
-  refs.backHomeBtn = document.getElementById("backHomeBtn");
   refs.backHomeFooterBtn = document.getElementById("backHomeFooterBtn");
   refs.appLogoBtn = document.getElementById("appLogoBtn");
   refs.storiesList = document.getElementById("storiesList");
@@ -545,7 +543,6 @@ function cacheRefs() {
   refs.stepContents = Array.from(document.querySelectorAll(".step-content"));
   refs.wizardForm = document.getElementById("wizardForm");
   refs.appFooter = document.getElementById("appFooter");
-  refs.headerStepText = document.getElementById("headerStepText");
   refs.prevStepBtn = document.getElementById("prevStepBtn");
   refs.nextStepBtn = document.getElementById("nextStepBtn");
   refs.saveStoryBtn = document.getElementById("saveStoryBtn");
@@ -571,11 +568,6 @@ function bindEvents() {
   refs.newStoryBtn.addEventListener("click", () => {
     void startNewStory();
   });
-  if (refs.backHomeBtn) {
-    refs.backHomeBtn.addEventListener("click", () => {
-      void goHome();
-    });
-  }
   if (refs.backHomeFooterBtn) {
     refs.backHomeFooterBtn.addEventListener("click", () => {
       void goHome();
@@ -769,11 +761,6 @@ function showHome() {
   refs.homeScreen.classList.add("active");
   refs.editorScreen.classList.remove("active");
   refs.appFooter.classList.add("hidden");
-  refs.headerStepText.textContent = HOME_LABEL;
-  refs.headerStepText.hidden = false;
-  if (refs.backHomeBtn) {
-    refs.backHomeBtn.hidden = true;
-  }
   renderHomeList();
 }
 
@@ -782,10 +769,6 @@ function showEditor() {
   refs.homeScreen.classList.remove("active");
   refs.editorScreen.classList.add("active");
   refs.appFooter.classList.remove("hidden");
-  refs.headerStepText.hidden = true;
-  if (refs.backHomeBtn) {
-    refs.backHomeBtn.hidden = false;
-  }
   updateStepIndicator();
 }
 
@@ -1082,10 +1065,6 @@ function updateStepIndicator() {
     const lineStep = Number(line.dataset.stepLine);
     line.classList.toggle("step-line--done", lineStep < state.step);
   });
-
-  if (refs.editorScreen.classList.contains("active")) {
-    refs.headerStepText.textContent = `Passo ${state.step} di ${STEP_TOTAL}`;
-  }
 }
 
 function updateAffirmativeCustomState() {
@@ -1244,8 +1223,27 @@ function loadDyslexicFont() {
   if (dyslexicFontLoaded) {
     return Promise.resolve();
   }
-  dyslexicFontLoaded = true;
-  return Promise.resolve();
+
+  const existing = document.querySelector("link[data-font='dyslexic']");
+  if (existing) {
+    dyslexicFontLoaded = true;
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://fonts.cdnfonts.com/css/open-dyslexic";
+    link.dataset.font = "dyslexic";
+    link.onload = () => {
+      dyslexicFontLoaded = true;
+      resolve();
+    };
+    link.onerror = () => {
+      reject(new Error("Font OpenDyslexic non disponibile"));
+    };
+    document.head.appendChild(link);
+  });
 }
 
 function applyVisualSettings() {
@@ -1262,7 +1260,9 @@ function applyVisualSettings() {
 
   body.classList.add(themeMap[state.form.visualStyle] || "theme--colorful");
   if (state.form.fontChoice === "dyslexic") {
-    loadDyslexicFont();
+    void loadDyslexicFont().catch((error) => {
+      console.error(error);
+    });
     body.classList.add("font-dyslexic");
   } else {
     body.classList.add(`font-${state.form.fontChoice}`);
