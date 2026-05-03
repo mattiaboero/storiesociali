@@ -1549,6 +1549,86 @@ a:focus-visible {
   background: var(--color-primary-light);
 }
 
+/* ── Guida ai tipi di frase (sezione SEO) ─────────────────────── */
+
+.type-guide-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: var(--space-md) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.type-guide-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.type-guide-row:last-child {
+  border-bottom: none;
+}
+
+.type-guide-bar {
+  width: 5px;
+  flex-shrink: 0;
+}
+
+.type-guide-bar[data-type="descriptive"] { background: var(--color-descriptive); }
+.type-guide-bar[data-type="perspective"] { background: var(--color-perspective); }
+.type-guide-bar[data-type="directive"] { background: var(--color-directive); }
+.type-guide-bar[data-type="affirmative"] { background: var(--color-affirmative); }
+
+.type-guide-content {
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.type-guide-label {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.type-guide-desc {
+  margin: 0;
+  font-size: var(--text-md);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.type-guide-example {
+  margin: 0;
+  font-family: var(--font-story);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.type-guide-example-label {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.type-guide-ratio {
+  margin: var(--space-sm) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-primary-light);
+  border-radius: var(--radius-sm, 6px);
+  border-left: 3px solid var(--color-primary);
+}
+
 @media (min-width: 860px) {
   .story-examples-grid {
     grid-template-columns: 1fr 1fr;
