@@ -220,6 +220,11 @@ body {
   letter-spacing: 0.08em;
 }
 
+.header-back-btn {
+  font-size: var(--text-sm);
+  padding: 0.3em 0.9em;
+}
+
 .home-shell {
   max-width: 1100px;
   margin: 0 auto;
@@ -744,6 +749,23 @@ body {
   padding: 0;
   border: 0;
   min-inline-size: 0;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.checkbox-option input[type="checkbox"] {
+  margin-top: 0.2rem;
+}
+
+.checkbox-option .field-label {
+  margin: 0;
+  font-size: var(--text-sm);
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .story-input {

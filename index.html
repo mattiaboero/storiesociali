@@ -255,6 +255,7 @@
     <header class="app-header">
       <button id="appLogoBtn" class="app-logo app-logo--btn" type="button" aria-label="Torna alla home delle storie salvate">Raccont<span>ami</span><small class="app-logo-domain">storiesociali.org</small></button>
       <div id="headerStepText" class="header-step-text">Storie salvate</div>
+      <button id="backHomeBtn" class="btn btn-secondary header-back-btn" type="button" aria-label="Torna alle storie salvate" hidden>Storie salvate</button>
     </header>
 
     <main id="main-content" class="app-main">
@@ -756,6 +757,9 @@
                   <label class="field-label" for="protagonistName">Nome</label>
                   <input id="protagonistName" name="protagonistName" class="story-input" type="text" placeholder="Es. Luca" maxlength="40">
 
+                  <label class="field-label" for="storyTitle">Titolo della storia</label>
+                  <input id="storyTitle" name="storyTitle" class="story-input" type="text" placeholder="Es. La ricreazione di Luca" maxlength="80">
+
                   <label class="field-label" for="ageRange">Età approssimativa</label>
                   <select id="ageRange" name="ageRange" class="story-input">
                     <option value="3-5">3-5 anni</option>
@@ -774,6 +778,39 @@
                   <label class="field-label" for="situationInput">Descrizione libera</label>
                   <textarea id="situationInput" name="situationInput" class="story-input" rows="4" aria-required="true" placeholder="Es. Durante ricreazione Luca si agita quando c'è molta confusione."></textarea>
                   <div id="situationComplexPreview" class="hint-box" aria-live="polite" aria-atomic="true"></div>
+
+                  <fieldset class="field-group">
+                    <legend class="field-label">Come vuoi presentare la situazione?</legend>
+                    <label class="radio-option">
+                      <input type="radio" name="situationFraming" value="quando" checked>
+                      <span class="radio-dot"></span>
+                      <span class="radio-label">Quando [situazione] - formula standard</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="situationFraming" value="free">
+                      <span class="radio-dot"></span>
+                      <span class="radio-label">Frase libera - scrivo io l'introduzione completa</span>
+                    </label>
+                  </fieldset>
+
+                  <fieldset class="field-group">
+                    <legend class="field-label">Come vuoi chiudere la frase?</legend>
+                    <label class="radio-option">
+                      <input type="radio" name="situationClosing" value="capire" checked>
+                      <span class="radio-dot"></span>
+                      <span class="radio-label">posso capire meglio cosa succede</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="situationClosing" value="comportare">
+                      <span class="radio-dot"></span>
+                      <span class="radio-label">posso capire come mi devo comportare</span>
+                    </label>
+                    <label class="radio-option">
+                      <input type="radio" name="situationClosing" value="fare">
+                      <span class="radio-dot"></span>
+                      <span class="radio-label">posso capire cosa posso fare</span>
+                    </label>
+                  </fieldset>
 
                   <fieldset class="field-group">
                     <legend class="field-label">Esempi rapidi</legend>
@@ -887,9 +924,12 @@
                   <p class="question-label">Passo 7</p>
                   <p class="question-text" role="heading" aria-level="3">Personalizza stile e anteprima</p>
                   <p class="question-hint">Scegli aspetto finale prima di salvare o stampare.</p>
+                  <p class="question-hint">Puoi cambiare il titolo tornando al Passo 1.</p>
 
-                  <label class="field-label" for="storyTitle">Titolo della storia</label>
-                  <input id="storyTitle" name="storyTitle" class="story-input" type="text" placeholder="Es. La ricreazione di Luca" maxlength="80">
+                  <label class="field-group checkbox-option">
+                    <input type="checkbox" name="pdfShowLabels" id="pdfShowLabels" checked>
+                    <span class="field-label">Mostra etichetta tipo frase nel PDF (Descrittiva, Direttiva...)</span>
+                  </label>
 
                   <fieldset class="field-group">
                     <legend class="field-label">Stile visivo</legend>
@@ -981,7 +1021,7 @@
 
     <footer id="appFooter" class="app-footer hidden">
       <div class="footer-group">
-        <button id="backHomeBtn" class="btn btn-secondary" type="button" aria-label="Torna alla lista delle storie salvate">← Storie salvate</button>
+        <button id="backHomeFooterBtn" class="btn btn-secondary" type="button" aria-label="Torna alla lista delle storie salvate">← Storie salvate</button>
       </div>
       <div class="footer-group wizard-nav">
         <button id="prevStepBtn" class="btn btn-secondary" type="button">Indietro</button>

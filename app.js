@@ -67,6 +67,8 @@ const WIZARD_FIELD_MAP = {
   protagonistName: "protagonistName",
   ageRange: "ageRange",
   situationInput: "situation",
+  situationFraming: "situationFraming",
+  situationClosing: "situationClosing",
   whereInput: "where",
   whenInput: "when",
   whoInput: "who",
@@ -511,8 +513,11 @@ function createDefaultForm() {
   return {
     protagonistType: "personal",
     protagonistName: "",
+    title: "",
     ageRange: "6-8",
     situation: "",
+    situationFraming: "quando",
+    situationClosing: "capire",
     where: "",
     when: "",
     who: "",
@@ -522,7 +527,7 @@ function createDefaultForm() {
     directive: "",
     affirmativePreset: "preset_retry",
     affirmativeCustom: "",
-    title: "",
+    pdfShowLabels: true,
     visualStyle: "colorful",
     imageSpace: "none",
     fontChoice: "standard"
@@ -554,6 +559,7 @@ function cacheRefs() {
   refs.editorScreen = document.getElementById("editorScreen");
   refs.newStoryBtn = document.getElementById("newStoryBtn");
   refs.backHomeBtn = document.getElementById("backHomeBtn");
+  refs.backHomeFooterBtn = document.getElementById("backHomeFooterBtn");
   refs.appLogoBtn = document.getElementById("appLogoBtn");
   refs.storiesList = document.getElementById("storiesList");
   refs.emptyState = document.getElementById("emptyState");
@@ -597,9 +603,16 @@ function bindEvents() {
   refs.newStoryBtn.addEventListener("click", () => {
     void startNewStory();
   });
-  refs.backHomeBtn.addEventListener("click", () => {
-    void goHome();
-  });
+  if (refs.backHomeBtn) {
+    refs.backHomeBtn.addEventListener("click", () => {
+      void goHome();
+    });
+  }
+  if (refs.backHomeFooterBtn) {
+    refs.backHomeFooterBtn.addEventListener("click", () => {
+      void goHome();
+    });
+  }
   if (refs.appLogoBtn) {
     refs.appLogoBtn.addEventListener("click", () => {
       void goHome();
@@ -627,7 +640,7 @@ function bindEvents() {
   });
 
   refs.wizardForm.addEventListener("change", (event) => {
-    if (!event.target.matches("input[type=\"radio\"], select")) {
+    if (!event.target.matches("input[type=\"radio\"], input[type=\"checkbox\"], select")) {
       return;
     }
     onWizardChange(event);
@@ -671,6 +684,13 @@ function onWizardChange(event) {
 }
 
 function applyWizardStateUpdate(name, value) {
+  if (name === "pdfShowLabels") {
+    const checkbox = document.querySelector('input[name="pdfShowLabels"]');
+    state.form.pdfShowLabels = Boolean(checkbox && checkbox.checked);
+    state.isDirty = true;
+    return;
+  }
+
   const field = WIZARD_FIELD_MAP[name];
   if (field) {
     state.form[field] = value;
@@ -789,6 +809,10 @@ function showHome() {
   refs.editorScreen.classList.remove("active");
   refs.appFooter.classList.add("hidden");
   refs.headerStepText.textContent = HOME_LABEL;
+  refs.headerStepText.hidden = false;
+  if (refs.backHomeBtn) {
+    refs.backHomeBtn.hidden = true;
+  }
   renderHomeList();
 }
 
@@ -797,6 +821,10 @@ function showEditor() {
   refs.homeScreen.classList.remove("active");
   refs.editorScreen.classList.add("active");
   refs.appFooter.classList.remove("hidden");
+  refs.headerStepText.hidden = true;
+  if (refs.backHomeBtn) {
+    refs.backHomeBtn.hidden = false;
+  }
   updateStepIndicator();
 }
 
@@ -1015,8 +1043,11 @@ function updateFooterActions(story = null) {
 function applyFormToUI() {
   setRadio("protagonistType", state.form.protagonistType);
   setValue("protagonistName", state.form.protagonistName);
+  setValue("storyTitle", state.form.title);
   setValue("ageRange", state.form.ageRange);
   setValue("situationInput", state.form.situation);
+  setRadio("situationFraming", state.form.situationFraming);
+  setRadio("situationClosing", state.form.situationClosing);
   setValue("whereInput", state.form.where);
   setValue("whenInput", state.form.when);
   setValue("whoInput", state.form.who);
@@ -1026,7 +1057,7 @@ function applyFormToUI() {
   setValue("directiveInput", state.form.directive);
   setRadio("affirmativePreset", state.form.affirmativePreset);
   setValue("affirmativeCustom", state.form.affirmativeCustom);
-  setValue("storyTitle", state.form.title);
+  setCheckbox("pdfShowLabels", state.form.pdfShowLabels);
   setRadio("visualStyle", state.form.visualStyle);
   setRadio("imageSpace", state.form.imageSpace);
   setRadio("fontChoice", state.form.fontChoice);
@@ -1052,6 +1083,14 @@ function setValue(idOrName, value) {
     return;
   }
   element.value = value || "";
+}
+
+function setCheckbox(idOrName, checked) {
+  const element = document.getElementById(idOrName) || document.querySelector(`[name="${idOrName}"]`);
+  if (!element || element.type !== "checkbox") {
+    return;
+  }
+  element.checked = Boolean(checked);
 }
 
 function syncSelectionStates() {
@@ -1372,35 +1411,51 @@ function buildSituationSentence() {
     return "";
   }
 
-  const startsWithConnector = /^(quando|se|mentre)\b/i.test(situation);
-  const containsQuando = /\bquando\b/i.test(situation);
+  const closingByMode = {
+    capire: {
+      personal: "posso capire meglio cosa succede",
+      third: "può capire meglio cosa succede"
+    },
+    comportare: {
+      personal: "posso capire come mi devo comportare",
+      third: "può capire come si deve comportare"
+    },
+    fare: {
+      personal: "posso capire cosa posso fare",
+      third: "può capire cosa può fare"
+    }
+  };
 
-  if (state.form.protagonistType === "personal") {
+  const closingKey = sanitize(state.form.situationClosing);
+  const selectedClosing = closingByMode[closingKey] || closingByMode.capire;
+  const isPersonal = state.form.protagonistType === "personal";
+  const startsWithConnector = /^(quando|se|mentre)\b/i.test(situation);
+
+  if (state.form.situationFraming === "free") {
+    if (isPersonal) {
+      const name = sanitize(state.form.protagonistName);
+      const subject = name ? `io, ${name},` : "io";
+      return normalizeSentence(`${situation}. Per questo ${subject} ${selectedClosing.personal}`, 40);
+    }
+
+    const character = sanitize(state.form.protagonistName) || "il protagonista";
+    return normalizeSentence(`${situation}. Per questo ${character} ${selectedClosing.third}`, 40);
+  }
+
+  if (isPersonal) {
     const name = sanitize(state.form.protagonistName);
     const subject = name ? `io, ${name},` : "io";
-
     if (startsWithConnector) {
-      return normalizeSentence(`${situation}, ${subject} posso capire meglio cosa succede`, 40);
+      return normalizeSentence(`${situation}, ${subject} ${selectedClosing.personal}`, 40);
     }
-
-    if (containsQuando) {
-      return normalizeSentence(`In questa situazione, ${subject} posso capire meglio cosa succede: ${lowercaseFirst(situation)}`, 40);
-    }
-
-    return normalizeSentence(`Quando ${situation}, ${subject} posso capire meglio cosa succede`, 40);
+    return normalizeSentence(`Quando ${lowercaseFirst(situation)}, ${subject} ${selectedClosing.personal}`, 40);
   }
 
   const character = sanitize(state.form.protagonistName) || "il protagonista";
-
   if (startsWithConnector) {
-    return normalizeSentence(`${situation}, ${character} può capire meglio cosa succede`, 40);
+    return normalizeSentence(`${situation}, ${character} ${selectedClosing.third}`, 40);
   }
-
-  if (containsQuando) {
-    return normalizeSentence(`In questa situazione, ${character} può capire meglio cosa succede: ${lowercaseFirst(situation)}`, 40);
-  }
-
-  return normalizeSentence(`Quando ${situation}, ${character} può capire meglio cosa succede`, 40);
+  return normalizeSentence(`Quando ${lowercaseFirst(situation)}, ${character} ${selectedClosing.third}`, 40);
 }
 
 function buildFallbackDescriptive(index) {
@@ -2241,7 +2296,8 @@ async function exportPDF() {
 
     for (let i = 0; i < story.sentences.length; i += 1) {
       const sentence = story.sentences[i];
-      const line = `${i + 1}. ${sentenceTypeLabel(sentence.type)}: ${sentence.text}`;
+      const label = state.form.pdfShowLabels ? `${sentenceTypeLabel(sentence.type)}: ` : "";
+      const line = `${i + 1}. ${label}${sentence.text}`;
 
       if (state.form.imageSpace === "large") {
         y = ensurePage(doc, y, PDF_LAYOUT.largeImageNeedHeight, maxY);
@@ -2530,13 +2586,27 @@ function normalizeLoadedForm(form) {
   const rawPreset = sanitize(form.affirmativePreset);
   const normalizedPreset = normalizeAffirmativePreset(rawPreset);
   const normalizedCustom = sanitize(form.affirmativeCustom);
+  const framingRaw = sanitize(form.situationFraming).toLowerCase();
+  const closingRaw = sanitize(form.situationClosing).toLowerCase();
+  const normalizedFraming = framingRaw === "free" ? "free" : "quando";
+  const normalizedClosing = ["capire", "comportare", "fare"].includes(closingRaw) ? closingRaw : "capire";
+  const normalizedPdfShowLabels =
+    form.pdfShowLabels === false ||
+    form.pdfShowLabels === "false" ||
+    form.pdfShowLabels === 0 ||
+    form.pdfShowLabels === "0"
+      ? false
+      : true;
 
   const preserveLegacyCustom = normalizedPreset === "custom" && !normalizedCustom && rawPreset && rawPreset !== "custom";
 
   return {
     ...form,
     affirmativePreset: normalizedPreset,
-    affirmativeCustom: preserveLegacyCustom ? rawPreset : normalizedCustom
+    affirmativeCustom: preserveLegacyCustom ? rawPreset : normalizedCustom,
+    situationFraming: normalizedFraming,
+    situationClosing: normalizedClosing,
+    pdfShowLabels: normalizedPdfShowLabels
   };
 }
 
