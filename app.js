@@ -3,39 +3,8 @@ const DRAFT_KEY = "socialStories_draft_v1";
 const STEP_TOTAL = 7;
 const AUTOSAVE_DEBOUNCE_MS = 1500;
 const JSPDF_CDN_URL = "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js";
+const HTML2CANVAS_CDN_URL = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
 const BASE_GOOGLE_FONTS_URL = "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap";
-const PDF_FONT_URLS = [
-  "/assets/fonts/lora-regular.ttf",
-  "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lora/Lora-Regular.ttf"
-];
-const PDF_FONT_FILENAME = "Lora-Regular.ttf";
-const PDF_FONT_FAMILY = "LoraPDF";
-const PDF_LAYOUT = {
-  marginTop: 54,
-  marginLeft: 46,
-  maxY: 790,
-  newPageY: 56,
-  titleFontSize: 19,
-  bodyFontSize: 12,
-  lineHeight: 16,
-  titleSpacingAfter: 28,
-  metaSpacingAfter: 20,
-  largeImageNeedHeight: 118,
-  largeImageBoxWidth: 505,
-  largeImageBoxHeight: 72,
-  largeImageBlockHeight: 84,
-  smallImageNeedHeightMin: 58,
-  smallImageBoxWidth: 90,
-  smallImageBoxHeight: 48,
-  smallImageOffset: 105,
-  smallImageContentWidth: 395,
-  contentWidthFull: 505,
-  paragraphSpacing: 6
-};
-
-let pdfFontBase64Cache = null;
-let pdfFontLoadPromise = null;
-let pdfFontFailed = false;
 let baseFontsLoaded = false;
 let baseFontsLoadPromise = null;
 let dyslexicFontLoaded = false;
@@ -527,7 +496,6 @@ function createDefaultForm() {
     directive: "",
     affirmativePreset: "preset_retry",
     affirmativeCustom: "",
-    pdfShowLabels: true,
     visualStyle: "colorful",
     imageSpace: "none",
     fontChoice: "standard"
@@ -684,13 +652,6 @@ function onWizardChange(event) {
 }
 
 function applyWizardStateUpdate(name, value) {
-  if (name === "pdfShowLabels") {
-    const checkbox = document.querySelector('input[name="pdfShowLabels"]');
-    state.form.pdfShowLabels = Boolean(checkbox && checkbox.checked);
-    state.isDirty = true;
-    return;
-  }
-
   const field = WIZARD_FIELD_MAP[name];
   if (field) {
     state.form[field] = value;
@@ -1057,7 +1018,6 @@ function applyFormToUI() {
   setValue("directiveInput", state.form.directive);
   setRadio("affirmativePreset", state.form.affirmativePreset);
   setValue("affirmativeCustom", state.form.affirmativeCustom);
-  setCheckbox("pdfShowLabels", state.form.pdfShowLabels);
   setRadio("visualStyle", state.form.visualStyle);
   setRadio("imageSpace", state.form.imageSpace);
   setRadio("fontChoice", state.form.fontChoice);
@@ -1083,14 +1043,6 @@ function setValue(idOrName, value) {
     return;
   }
   element.value = value || "";
-}
-
-function setCheckbox(idOrName, checked) {
-  const element = document.getElementById(idOrName) || document.querySelector(`[name="${idOrName}"]`);
-  if (!element || element.type !== "checkbox") {
-    return;
-  }
-  element.checked = Boolean(checked);
 }
 
 function syncSelectionStates() {
@@ -2176,74 +2128,27 @@ function ensureJsPdfLoaded() {
   });
 }
 
-function arrayBufferToBase64(arrayBuffer) {
-  const bytes = new Uint8Array(arrayBuffer);
-  const chunkSize = 0x8000;
-  let binary = "";
-
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.subarray(i, i + chunkSize);
-    binary += String.fromCharCode.apply(null, chunk);
+function ensureHtml2CanvasLoaded() {
+  if (window.html2canvas) {
+    return Promise.resolve(true);
   }
 
-  return window.btoa(binary);
-}
-
-function loadPdfFontBase64() {
-  if (pdfFontBase64Cache) {
-    return Promise.resolve(pdfFontBase64Cache);
-  }
-
-  if (pdfFontFailed) {
-    return Promise.reject(new Error("Font PDF non disponibile."));
-  }
-
-  if (pdfFontLoadPromise) {
-    return pdfFontLoadPromise;
-  }
-
-  pdfFontLoadPromise = (async () => {
-    let lastError = null;
-
-    for (const fontUrl of PDF_FONT_URLS) {
-      try {
-        const response = await fetch(fontUrl, { cache: "force-cache" });
-        if (!response.ok) {
-          throw new Error(`Font HTTP ${response.status} (${fontUrl})`);
-        }
-        const buffer = await response.arrayBuffer();
-        pdfFontBase64Cache = arrayBufferToBase64(buffer);
-        pdfFontFailed = false;
-        return pdfFontBase64Cache;
-      } catch (error) {
-        lastError = error;
-        console.warn("Tentativo caricamento font PDF fallito", fontUrl, error);
-      }
-    }
-
-    throw lastError || new Error("Nessun font PDF disponibile.");
-  })()
-    .finally(() => {
-      if (!pdfFontBase64Cache) {
-        pdfFontFailed = true;
-      }
-      pdfFontLoadPromise = null;
+  const existing = document.querySelector(`script[src="${HTML2CANVAS_CDN_URL}"]`);
+  if (existing) {
+    return new Promise((resolve) => {
+      existing.addEventListener("load", () => resolve(Boolean(window.html2canvas)), { once: true });
+      existing.addEventListener("error", () => resolve(false), { once: true });
     });
-
-  return pdfFontLoadPromise;
-}
-
-async function ensurePdfUnicodeFont(doc) {
-  try {
-    const fontBase64 = await loadPdfFontBase64();
-    doc.addFileToVFS(PDF_FONT_FILENAME, fontBase64);
-    doc.addFont(PDF_FONT_FILENAME, PDF_FONT_FAMILY, "normal");
-    doc.setFont(PDF_FONT_FAMILY, "normal");
-    return true;
-  } catch (error) {
-    console.error("Impossibile caricare font PDF Unicode", error);
-    return false;
   }
+
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = HTML2CANVAS_CDN_URL;
+    script.async = true;
+    script.onload = () => resolve(Boolean(window.html2canvas));
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
 }
 
 async function exportPDF() {
@@ -2263,76 +2168,106 @@ async function exportPDF() {
   refs.pdfBtn.textContent = "Generazione PDF…";
 
   try {
-    const loaded = await ensureJsPdfLoaded();
-    if (!loaded || !window.jspdf || !window.jspdf.jsPDF) {
+    const [jspdfReady, h2cReady] = await Promise.all([
+      ensureJsPdfLoaded(),
+      ensureHtml2CanvasLoaded()
+    ]);
+
+    if (!jspdfReady || !window.jspdf || !window.jspdf.jsPDF) {
       showToast("jsPDF non disponibile. Controlla connessione internet.", "error");
       return;
     }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const unicodeFontReady = await ensurePdfUnicodeFont(doc);
-
-    let y = PDF_LAYOUT.marginTop;
-    const marginLeft = PDF_LAYOUT.marginLeft;
-    const maxY = PDF_LAYOUT.maxY;
-
-    if (!unicodeFontReady) {
-      doc.setFont("helvetica", "normal");
-      showToast("PDF con font base: alcuni accenti potrebbero non vedersi bene.", "warning");
+    if (!h2cReady || !window.html2canvas) {
+      showToast("html2canvas non disponibile. Controlla connessione internet.", "error");
+      return;
     }
 
-    doc.setFontSize(PDF_LAYOUT.titleFontSize);
-    doc.text(story.title, marginLeft, y);
-    y += PDF_LAYOUT.titleSpacingAfter;
+    const previewElement = document.getElementById("storyPreview");
+    if (!previewElement) {
+      showToast("Anteprima non disponibile per l'esportazione.", "error");
+      return;
+    }
 
-    doc.setFontSize(PDF_LAYOUT.bodyFontSize);
-    doc.text(
-      `Descrittive ${story.counts.descriptive} | Prospettiche ${story.counts.perspective} | Direttive ${story.counts.directive} | Affermative ${story.counts.affirmative}`,
-      marginLeft,
-      y
-    );
-    y += PDF_LAYOUT.metaSpacingAfter;
+    const printStyleEl = document.createElement("style");
+    printStyleEl.id = "pdf-capture-styles";
+    printStyleEl.textContent = `
+      #storyPreview.story-preview {
+        background: white !important;
+        padding: 24pt !important;
+        max-width: 600px !important;
+      }
+      #storyPreview .story-title {
+        font-size: 24pt !important;
+        margin-bottom: 24pt !important;
+        border-bottom: 2pt solid #C4622D !important;
+        padding-bottom: 8pt !important;
+      }
+      #storyPreview .story-sentence {
+        margin-bottom: 18pt !important;
+      }
+      #storyPreview .sentence-text {
+        font-size: 16pt !important;
+        line-height: 2 !important;
+      }
+      #storyPreview .image-placeholder {
+        height: 140pt !important;
+        border: 2pt dashed #ccc !important;
+      }
+    `;
+    document.head.appendChild(printStyleEl);
 
-    for (let i = 0; i < story.sentences.length; i += 1) {
-      const sentence = story.sentences[i];
-      const label = state.form.pdfShowLabels ? `${sentenceTypeLabel(sentence.type)}: ` : "";
-      const line = `${i + 1}. ${label}${sentence.text}`;
+    let canvas;
+    try {
+      canvas = await window.html2canvas(previewElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff"
+      });
+    } finally {
+      printStyleEl.remove();
+    }
 
-      if (state.form.imageSpace === "large") {
-        y = ensurePage(doc, y, PDF_LAYOUT.largeImageNeedHeight, maxY);
-        doc.setDrawColor(153);
-        doc.rect(marginLeft, y, PDF_LAYOUT.largeImageBoxWidth, PDF_LAYOUT.largeImageBoxHeight);
-        y += PDF_LAYOUT.largeImageBlockHeight;
-        const lines = doc.splitTextToSize(line, PDF_LAYOUT.contentWidthFull);
-        y = ensurePage(doc, y, lines.length * PDF_LAYOUT.lineHeight + PDF_LAYOUT.bodyFontSize, maxY);
-        doc.text(lines, marginLeft, y);
-        y += lines.length * PDF_LAYOUT.lineHeight + 8;
-        continue;
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: "pt", format: "a4" });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 36;
+    const contentWidth = pageWidth - margin * 2;
+
+    const pxToPt = contentWidth / canvas.width;
+    const pageHeightPx = Math.max(1, Math.floor((pageHeight - margin * 2) / pxToPt));
+
+    let yOffset = 0;
+    while (yOffset < canvas.height) {
+      if (yOffset > 0) {
+        pdf.addPage();
       }
 
-      if (state.form.imageSpace === "small") {
-        const lines = doc.splitTextToSize(line, PDF_LAYOUT.smallImageContentWidth);
-        const blockHeight = Math.max(
-          lines.length * PDF_LAYOUT.lineHeight + 10,
-          PDF_LAYOUT.smallImageNeedHeightMin
-        );
-        y = ensurePage(doc, y, blockHeight, maxY);
-        doc.setDrawColor(153);
-        doc.rect(marginLeft, y - 10, PDF_LAYOUT.smallImageBoxWidth, PDF_LAYOUT.smallImageBoxHeight);
-        doc.text(lines, marginLeft + PDF_LAYOUT.smallImageOffset, y + 2);
-        y += blockHeight;
-        continue;
+      const sliceHeight = Math.min(pageHeightPx, canvas.height - yOffset);
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = sliceHeight;
+      const ctx = sliceCanvas.getContext("2d");
+      if (!ctx) {
+        showToast("Impossibile preparare il PDF.", "error");
+        return;
       }
 
-      const lines = doc.splitTextToSize(line, PDF_LAYOUT.contentWidthFull);
-      y = ensurePage(doc, y, lines.length * PDF_LAYOUT.lineHeight + 8, maxY);
-      doc.text(lines, marginLeft, y);
-      y += lines.length * PDF_LAYOUT.lineHeight + PDF_LAYOUT.paragraphSpacing;
+      ctx.drawImage(
+        canvas,
+        0, yOffset, canvas.width, sliceHeight,
+        0, 0, canvas.width, sliceHeight
+      );
+
+      const imageData = sliceCanvas.toDataURL("image/jpeg", 0.95);
+      pdf.addImage(imageData, "JPEG", margin, margin, contentWidth, sliceHeight * pxToPt);
+      yOffset += sliceHeight;
     }
 
     const filename = `${slugify(story.title || "storia-sociale")}.pdf`;
-    doc.save(filename);
+    pdf.save(filename);
     showToast("PDF generato.", "success");
   } finally {
     refs.pdfBtn.disabled = false;
@@ -2548,14 +2483,6 @@ function announceStepChange() {
   refs.stepAnnouncer.textContent = `Passo ${state.step} di ${STEP_TOTAL}`;
 }
 
-function ensurePage(doc, y, needHeight, maxY, newPageY = PDF_LAYOUT.newPageY) {
-  if (y + needHeight <= maxY) {
-    return y;
-  }
-  doc.addPage();
-  return newPageY;
-}
-
 function loadStories() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -2590,13 +2517,6 @@ function normalizeLoadedForm(form) {
   const closingRaw = sanitize(form.situationClosing).toLowerCase();
   const normalizedFraming = framingRaw === "free" ? "free" : "quando";
   const normalizedClosing = ["capire", "comportare", "fare"].includes(closingRaw) ? closingRaw : "capire";
-  const normalizedPdfShowLabels =
-    form.pdfShowLabels === false ||
-    form.pdfShowLabels === "false" ||
-    form.pdfShowLabels === 0 ||
-    form.pdfShowLabels === "0"
-      ? false
-      : true;
 
   const preserveLegacyCustom = normalizedPreset === "custom" && !normalizedCustom && rawPreset && rawPreset !== "custom";
 
@@ -2605,8 +2525,7 @@ function normalizeLoadedForm(form) {
     affirmativePreset: normalizedPreset,
     affirmativeCustom: preserveLegacyCustom ? rawPreset : normalizedCustom,
     situationFraming: normalizedFraming,
-    situationClosing: normalizedClosing,
-    pdfShowLabels: normalizedPdfShowLabels
+    situationClosing: normalizedClosing
   };
 }
 
